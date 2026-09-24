@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mi Tienda — Catálogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF1F4;--card:#fff;--ink:#1F2A37;--mute:#667085;--line:#D8DEE6;--acc:#1F5EFF;--acc-ink:#fff}
+*{box-sizing:border-box;margin:0}
+body{font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{font-weight:800;font-size:1.2rem;text-decoration:none;color:inherit}
+nav{display:flex;gap:18px;align-items:center}
+nav a{color:var(--mute);text-decoration:none;font-size:.95rem}
+.cartbtn{background:var(--ink);color:#fff;border:0;border-radius:999px;padding:8px 16px;cursor:pointer}
+.hero{padding:64px 0 40px}
+.hero h1{font-size:clamp(2.4rem,8vw,5rem);line-height:1;font-weight:800;letter-spacing:-.03em;max-width:12ch}
+.hero p{margin:18px 0 26px;color:var(--mute);max-width:46ch}
+.btn{display:inline-block;background:var(--acc);color:var(--acc-ink);border:0;border-radius:10px;padding:12px 20px;font-weight:600;cursor:pointer;text-decoration:none;text-align:center}
+.btn.full{width:100%}
+.lnk{background:none;border:0;color:var(--mute);text-decoration:underline;cursor:pointer;padding:8px 0}
+section{padding:36px 0}
+h2{font-size:1.6rem;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:4px 0 20px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}
+.tools input,.tools select,.f input,.f select{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;min-width:0}
+.tools input{flex:1 1 200px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.card{background:var(--card);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.ph{aspect-ratio:1;display:grid;place-items:center;font-size:3.5rem;font-weight:800;color:rgba(31,42,55,.35)}
+.ph img{width:100%;height:100%;object-fit:cover}
+.info{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.info h3{font-size:1rem;font-weight:600}
+.price{font-weight:800;font-size:1.1rem}
+.info select{border:1px solid var(--line);border-radius:8px;padding:7px 8px;background:#fff}
+.info .btn{margin-top:auto;padding:10px}
+.empty{color:var(--mute);padding:30px 0}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:24px;list-style:none;padding:0;counter-reset:s}
+.steps li{counter-increment:s;padding-left:44px;position:relative}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:600}
+.steps b{display:block}.steps span{color:var(--mute);font-size:.95rem}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--mute);font-size:.9rem}
+#veil{position:fixed;inset:0;background:rgba(31,42,55,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:10}
+#veil.on{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;right:0;height:100%;width:min(420px,100%);background:#fff;z-index:11;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;padding:20px;overflow-y:auto}
+#drawer.on{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.dh button{background:none;border:0;cursor:pointer;color:var(--mute)}
+#lines{list-style:none;padding:0}
+#lines li{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.q{display:flex;align-items:center;gap:8px;margin-top:6px}
+.q button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer}
+.tot{display:flex;justify-content:space-between;font-size:1.2rem;margin:18px 0}
+.f{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.f label{font-size:.9rem;color:var(--mute)}
+.note{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:.9rem;margin-bottom:14px}
+.err{color:#B42318;font-size:.9rem;min-height:1.3em;margin-bottom:8px}
+@media (prefers-reduced-motion:reduce){#drawer,#veil{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <a class="brand" href="#" id="brandTop"></a>
+  <nav><a href="#catalogo">Catálogo</a><a href="#como">Cómo comprar</a>
+  <button class="cartbtn" id="openCart">Carrito <span id="count">0</span></button></nav>
+</div></header>
+
+<main>
+<div class="wrap hero">
+  <h1 id="tagline"></h1>
+  <p id="heroSub"></p>
+  <a class="btn" href="#catalogo">Ver catálogo</a>
+</div>
+
+<section id="catalogo"><div class="wrap">
+  <h2>Catálogo</h2>
+  <p class="sub" id="catSub"></p>
+  <div class="tools">
+    <input type="search" id="q" placeholder="Buscar producto" aria-label="Buscar producto">
+    <select id="sort" aria-label="Ordenar por">
+      <option value="rec">Recomendados</option>
+      <option value="asc">Precio: de menor a mayor</option>
+      <option value="desc">Precio: de mayor a menor</option>
+    </select>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>No encontramos productos con esa búsqueda. <button class="lnk" id="reset">Ver todo el catálogo</button></p>
+</div></section>
+
+<section id="como"><div class="wrap">
+  <h2>Cómo comprar</h2>
+  <ol class="steps" style="margin-top:20px">
+    <li><b>Elige producto y opción</b><span>Añádelo al carrito. Si tienes dudas, escríbenos antes de pagar.</span></li>
+    <li><b>Paga por Yape o en efectivo</b><span>Con Yape, envías el comprobante por WhatsApp. El efectivo se paga al coordinar la entrega.</span></li>
+    <li><b>Recibe tu pedido</b><span>Coordinamos la entrega contigo por WhatsApp.</span></li>
+  </ol>
+</div></section>
+</main>
+
+<footer><div class="wrap"><span id="foot"></span> · <a href="#" id="wa" style="color:inherit">Escríbenos por WhatsApp</a></div></footer>
+
+<div id="veil"></div>
+<aside id="drawer" aria-label="Carrito" aria-hidden="true">
+  <div class="dh"><h2 id="dt">Tu carrito</h2><button id="close">Cerrar</button></div>
+  <div id="cartView">
+    <ul id="lines"></ul>
+    <p class="empty" id="cartEmpty">Tu carrito está vacío.</p>
+    <div class="tot"><span>Total</span><b id="total"></b></div>
+    <button class="btn full" id="toCo">Continuar con el pago</button>
+    <button class="lnk" id="clear">Vaciar carrito</button>
+  </div>
+  <div id="coView" hidden>
+    <button class="lnk" id="back">Volver al carrito</button>
+    <div class="f"><label for="cName">Tu nombre</label><input id="cName" autocomplete="name"></div>
+    <div class="f"><label for="cDel">Forma de entrega</label><select id="cDel"></select></div>
+    <div class="f"><label for="cZone">Distrito o ciudad</label><input id="cZone"></div>
+    <div class="f"><label for="cPay">Método de pago</label><select id="cPay"></select></div>
+    <div class="note" id="payNote" hidden></div>
+    <div class="tot"><span>Total a pagar</span><b id="total2"></b></div>
+    <p class="err" id="err" role="alert"></p>
+    <button class="btn full" id="send">Enviar pedido por WhatsApp</button>
+  </div>
+</aside>
+
+<script>
+/* ============ EDITA SOLO ESTA SECCIÓN ============ */
+const CONFIG = {
+  brand: "Mi Tienda",
+  tagline: "Elige, pide por WhatsApp y recibe.",
+  sub: "Catálogo simple: eliges, armas tu carrito y nos envías el pedido por WhatsApp.",
+  whatsapp: "51999999999",          // tu número con código de país, sin + ni espacios
+  yape: "999 999 999",              // número de Yape que verá el cliente
+  currency: "S/",
+  optionLabel: "Talla",             // "Talla", "Color", "Tamaño", etc.
+  deliveries: ["Motorizado en Lima", "Envío por agencia (todo el Perú)", "Lo coordino por WhatsApp"],
+  payments: ["Yape", "Efectivo"],
+  products: [
+    { id: 1, name: "Producto de ejemplo 1", price: 59,  options: ["S", "M", "L"], img: "" },
+    { id: 2, name: "Producto de ejemplo 2", price: 89,  options: ["S", "M", "L"], img: "" },
+    { id: 3, name: "Producto de ejemplo 3", price: 45,  options: [], img: "" },
+    { id: 4, name: "Producto de ejemplo 4", price: 120, options: ["Único"], img: "" },
+    { id: 5, name: "Producto de ejemplo 5", price: 75,  options: ["S", "M"], img: "" },
+    { id: 6, name: "Producto de ejemplo 6", price: 32,  options: [], img: "" }
+  ]
+};
+/* ================================================= */
+
+const $ = id => document.getElementById(id);
+const money = n => CONFIG.currency + " " + n.toLocaleString("es-PE");
+let cart = [];
+try { cart = JSON.parse(localStorage.getItem("cart") || "[]"); } catch (e) {}
+const save = () => { try { localStorage.setItem("cart", JSON.stringify(cart)); } catch (e) {} };
+const prod = id => CONFIG.products.find(p => p.id === id);
+const total = () => cart.reduce((s, l) => s + prod(l.id).price * l.qty, 0);
+cart = cart.filter(l => prod(l.id));
+
+document.title = CONFIG.brand + " — Catálogo";
+$("brandTop").textContent = CONFIG.brand;
+$("tagline").textContent = CONFIG.tagline;
+$("heroSub").textContent = CONFIG.sub;
+$("catSub").textContent = "Elige el producto y la opción. Pagas por " + CONFIG.payments.join(" o ") + ".";
+$("foot").textContent = "© " + new Date().getFullYear() + " " + CONFIG.brand;
+$("wa").href = "https://wa.me/" + CONFIG.whatsapp;
+CONFIG.deliveries.forEach(d => $("cDel").add(new Option(d)));
+CONFIG.payments.forEach(p => $("cPay").add(new Option(p)));
+
+function renderGrid() {
+  const q = $("q").value.trim().toLowerCase(), s = $("sort").value;
+  let list = CONFIG.products.filter(p => p.name.toLowerCase().includes(q));
+  if (s === "asc") list.sort((a, b) => a.price - b.price);
+  if (s === "desc") list.sort((a, b) => b.price - a.price);
+  $("empty").hidden = list.length > 0;
+  $("grid").innerHTML = list.map(p => `
+    <article class="card">
+      <div class="ph" style="background:hsl(${(p.id * 47) % 360} 30% 88%)">${p.img ? `<img src="${p.img}" alt="${p.name}" loading="lazy">` : `<span aria-hidden="true">${p.name[0]}</span>`}</div>
+      <div class="info">
+        <h3>${p.name}</h3>
+        <div class="price">${money(p.price)}</div>
+        ${p.options.length ? `<select aria-label="${CONFIG.optionLabel}">${p.options.map(o => `<option>${o}</option>`).join("")}</select>` : ""}
+        <button class="btn" data-add="${p.id}">Añadir al carrito</button>
+      </div>
+    </article>`).join("");
+}
+
+function renderCart() {
+  $("count").textContent = cart.reduce((s, l) => s + l.qty, 0);
+  $("lines").innerHTML = cart.map((l, i) => {
+    const p = prod(l.id);
+    return `<li><div><b>${p.name}</b>${l.opt ? `<div style="color:var(--mute);font-size:.9rem">${CONFIG.optionLabel}: ${l.opt}</div>` : ""}
+      <div class="q"><button data-q="${i}" data-d="-1" aria-label="Quitar uno">−</button>${l.qty}<button data-q="${i}" data-d="1" aria-label="Añadir uno">+</button></div></div>
+      <b>${money(p.price * l.qty)}</b></li>`;
+  }).join("");
+  $("cartEmpty").hidden = cart.length > 0;
+  $("toCo").disabled = !cart.length;
+  $("total").textContent = $("total2").textContent = money(total());
+  save();
+}
+
+function openDrawer(view) {
+  $("cartView").hidden = view !== "cart";
+  $("coView").hidden = view !== "co";
+  $("dt").textContent = view === "cart" ? "Tu carrito" : "Datos de entrega";
+  $("drawer").classList.add("on"); $("veil").classList.add("on");
+  $("drawer").setAttribute("aria-hidden", "false");
+}
+function closeDrawer() {
+  $("drawer").classList.remove("on"); $("veil").classList.remove("on");
+  $("drawer").setAttribute("aria-hidden", "true");
+}
+
+$("grid").addEventListener("click", e => {
+  const b = e.target.closest("[data-add]"); if (!b) return;
+  const sel = b.parentElement.querySelector("select");
+  const id = +b.dataset.add, opt = sel ? sel.value : "";
+  const line = cart.find(l => l.id === id && l.opt === opt);
+  line ? line.qty++ : cart.push({ id, opt, qty: 1 });
+  renderCart(); openDrawer("cart");
+});
+$("lines").addEventListener("click", e => {
+  const b = e.target.closest("[data-q]"); if (!b) return;
+  const l = cart[+b.dataset.q]; l.qty += +b.dataset.d;
+  if (l.qty <= 0) cart.splice(+b.dataset.q, 1);
+  renderCart();
+});
+$("q").addEventListener("input", renderGrid);
+$("sort").addEventListener("change", renderGrid);
+$("reset").addEventListener("click", () => { $("q").value = ""; renderGrid(); });
+$("openCart").addEventListener("click", () => openDrawer("cart"));
+$("close").addEventListener("click", closeDrawer);
+$("veil").addEventListener("click", closeDrawer);
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+$("clear").addEventListener("click", () => { cart = []; renderCart(); });
+$("toCo").addEventListener("click", () => openDrawer("co"));
+$("back").addEventListener("click", () => openDrawer("cart"));
+$("cPay").addEventListener("change", showPayNote);
+function showPayNote() {
+  const y = $("cPay").value === "Yape";
+  $("payNote").hidden = !y;
+  $("payNote").textContent = "Yape al " + CONFIG.yape + ". Envía el comprobante por WhatsApp.";
+}
+$("send").addEventListener("click", () => {
+  const name = $("cName").value.trim(), zone = $("cZone").value.trim();
+  if (!cart.length) { $("err").textContent = "Tu carrito está vacío."; return; }
+  if (!name || !zone) { $("err").textContent = "Completa tu nombre y tu distrito o ciudad."; return; }
+  $("err").textContent = "";
+  const lines = cart.map(l => { const p = prod(l.id);
+    return `- ${l.qty} x ${p.name}${l.opt ? " (" + CONFIG.optionLabel + " " + l.opt + ")" : ""}: ${money(p.price * l.qty)}`; });
+  const msg = `Hola ${CONFIG.brand}, quiero hacer este pedido:\n${lines.join("\n")}\n\nTotal: ${money(total())}\nNombre: ${name}\nEntrega: ${$("cDel").value}\nZona: ${zone}\nPago: ${$("cPay").value}`;
+  window.open("https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(msg), "_blank");
+});
+
+renderGrid(); renderCart(); showPayNote();
+</script>
+</body>
+</html>
