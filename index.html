@@ -757,26 +757,21 @@ select.input{
 
       <div class="grupo">
         <h3>Datos de entrega</h3>
-        <label class="campo-f">Tu nombre
-          <input class="input" id="f-nombre" type="text" autocomplete="name" placeholder="Nombre y apellido">
-        </label>
         <label class="campo-f">Forma de entrega
           <select class="input" id="f-entrega">
             <option>Motorizado en Lima</option>
-            <option>Contra entrega en estación de tren</option>
             <option>Envío por Shalom (todo el Perú)</option>
+            <option>Recojo en almacén (Cercado de Lima)</option>
             <option>Lo coordino por WhatsApp</option>
           </select>
         </label>
-        <label class="campo-f">Distrito, estación o ciudad
-          <input class="input" id="f-zona" type="text" autocomplete="address-level2" placeholder="Ej. Miraflores">
-        </label>
+        <div id="campos-entrega"></div>
       </div>
 
       <fieldset class="grupo">
         <legend>Método de pago</legend>
         <label class="opcion"><input type="radio" name="pago" value="Yape" checked> <span><b>Yape</b><small>Envías el comprobante por WhatsApp.</small></span></label>
-        <label class="opcion"><input type="radio" name="pago" value="Efectivo"> <span><b>Efectivo</b><small>Pagas al coordinar la entrega o el recojo.</small></span></label>
+        <label class="opcion"><input type="radio" name="pago" value="Efectivo"> <span><b>Efectivo</b><small>Pagas al coordinar delivery.</small></span></label>
       </fieldset>
 
       <div class="yape" id="yape">
@@ -1102,6 +1097,39 @@ const PRODUCTOS = [
   $("#ir-pago").addEventListener("click", () => { pintarCarrito(); mostrarVista("pago"); $("#vista-pago .cajon-lista").scrollTop = 0; });
   $("#volver").addEventListener("click", () => mostrarVista("carrito"));
 
+  /* ---------- Campos de entrega, según la forma elegida ---------- */
+  const CAMPOS_ENTREGA = {
+    "Motorizado en Lima": [
+      { id: "f-nombre", label: "Tu nombre", type: "text", autocomplete: "name", placeholder: "Nombre y apellido" },
+      { id: "f-zona", label: "Distrito o dirección", type: "text", autocomplete: "address-line1", placeholder: "Ej. Miraflores, Av. Larco 123" },
+      { id: "f-telefono", label: "Teléfono", type: "tel", autocomplete: "tel", placeholder: "Ej. 987 654 321" },
+      { id: "f-referencia", label: "Referencia", type: "text", placeholder: "Ej. Frente al parque, edificio azul" },
+    ],
+    "Envío por Shalom (todo el Perú)": [
+      { id: "f-nombre", label: "Tu nombre", type: "text", autocomplete: "name", placeholder: "Nombre y apellido" },
+      { id: "f-dni", label: "DNI o Carné de Extranjería", type: "text", placeholder: "Número de documento" },
+      { id: "f-agencia", label: "Agencia de destino", type: "text", placeholder: "Ciudad o agencia Shalom" },
+    ],
+    "Recojo en almacén (Cercado de Lima)": [
+      { id: "f-nombre", label: "Tu nombre", type: "text", autocomplete: "name", placeholder: "Nombre y apellido" },
+    ],
+    "Lo coordino por WhatsApp": [
+      { id: "f-nombre", label: "Tu nombre", type: "text", autocomplete: "name", placeholder: "Nombre y apellido" },
+    ],
+  };
+  function pintarCamposEntrega() {
+    const anteriores = {};
+    $$("#campos-entrega [id]").forEach((el) => { anteriores[el.id] = el.value; });
+    const campos = CAMPOS_ENTREGA[$("#f-entrega").value] || [];
+    $("#campos-entrega").innerHTML = campos.map((c) =>
+      `<label class="campo-f">${esc(c.label)}
+        <input class="input" id="${c.id}" type="${c.type}" ${c.autocomplete ? `autocomplete="${c.autocomplete}"` : ""} placeholder="${esc(c.placeholder)}">
+      </label>`
+    ).join("");
+    campos.forEach((c) => { if (anteriores[c.id]) $("#" + c.id).value = anteriores[c.id]; });
+  }
+  $("#f-entrega").addEventListener("change", pintarCamposEntrega);
+
   /* ---------- Pago y envío del pedido por WhatsApp ---------- */
   $$("input[name=pago]").forEach((r) => r.addEventListener("change", () => {
     $("#yape").hidden = $("input[name=pago]:checked").value !== "Yape";
@@ -1129,10 +1157,12 @@ const PRODUCTOS = [
       return `• ${l.cant} × ${p.nombre} (${talla}) — ${soles(precioLinea(p, l.cant))}`;
     });
     const partes = ["Hola " + TIENDA.nombre + ", quiero hacer este pedido:", "", ...lineas, "", "Total: " + soles(totalCarrito()), ""];
-    const nombre = $("#f-nombre").value.trim(), zona = $("#f-zona").value.trim();
-    if (nombre) partes.push("Nombre: " + nombre);
-    partes.push("Entrega: " + $("#f-entrega").value);
-    if (zona) partes.push("Zona: " + zona);
+    const entrega = $("#f-entrega").value;
+    partes.push("Forma de entrega: " + entrega);
+    (CAMPOS_ENTREGA[entrega] || []).forEach((c) => {
+      const el = $("#" + c.id);
+      if (el && el.value.trim()) partes.push(c.label + ": " + el.value.trim());
+    });
     partes.push("Pago: " + (pago === "Yape" ? "Yape (adjunto mi comprobante)" : "Efectivo"));
     window.open(wa(partes.join("\n")), "_blank", "noopener");
   });
@@ -1166,6 +1196,7 @@ const PRODUCTOS = [
   $("#y-numero").textContent = TIENDA.yape.numero;
 
   /* ---------- Arranque ---------- */
+  pintarCamposEntrega();
   estado.carrito = cargarCarrito();
   pintarFiltros();
   pintarCatalogo();
