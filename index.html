@@ -815,7 +815,7 @@ const TIENDA = {
 
 /* Orden y nombre de los filtros del catálogo (el "filtro" de cada producto debe coincidir). */
 const FILTROS = [
-  ["categoria-a", "Categoría A"], ["categoria-b", "Categoría B"], ["categoria-c", "Categoría C"]
+  ["zapatillas", "Zapatillas"], ["anda", "Anda"]
 ];
 
 /* Cada producto:
@@ -824,20 +824,16 @@ const FILTROS = [
    foto: ruta de la imagen (por ejemplo "fotos/vestido.jpg"), o null si aún no hay foto
    precio: null   →  la tienda muestra "Consultar precio" y el cliente pregunta por WhatsApp */
 const PRODUCTOS = [
-  { id:20001, filtro:"categoria-a", linea:"Categoría A", nombre:"Producto de ejemplo 1", precio:120, tallas:["S","M","L","XL"], estado:"disponible", foto:null,
-    descripcion:"Descripción de ejemplo. Aquí cuentas el material, el corte y con qué se combina." },
-  { id:20002, filtro:"categoria-a", linea:"Categoría A", nombre:"Producto de ejemplo 2", precio:150, tallas:["S","M","L"], estado:"disponible", foto:null,
-    descripcion:"Descripción de ejemplo. Escribe aquí lo que quieres que sepa tu clienta." },
-  { id:20003, filtro:"categoria-b", linea:"Categoría B", nombre:"Producto de ejemplo 3", precio:89, tallas:["S","M","L","XL"], estado:"disponible", foto:null,
-    descripcion:"Descripción de ejemplo del producto 3." },
-  { id:20004, filtro:"categoria-b", linea:"Categoría B", nombre:"Producto de ejemplo 4", precio:65, tallas:["Único"], estado:"agotado", foto:null,
-    descripcion:"Ejemplo de un producto agotado: se ve en gris y no se puede añadir al carrito." },
-  { id:20005, filtro:"categoria-c", linea:"Categoría C", nombre:"Producto de ejemplo 5", precio:45, tallas:["Único"], estado:"disponible", foto:null,
-    descripcion:"Descripción de ejemplo del producto 5." },
-  { id:20006, filtro:"categoria-c", linea:"Categoría C", nombre:"Producto de ejemplo 6", precio:null, tallas:["Único"], estado:"disponible", foto:null,
-    descripcion:"Ejemplo sin precio: la tienda muestra “Consultar precio” y la clienta pregunta por WhatsApp." },
-  { id:20007, filtro:"categoria-c", linea:"Categoría C", nombre:"Producto de ejemplo 7", precio:99, tallas:["S","M","L"], estado:"proximamente", foto:null,
-    descripcion:"Ejemplo de un producto que llega pronto." },
+  { id:3001, filtro:"anda", linea:"Anda", nombre:"Anda 260X Celeste", precio:75, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-celeste.jpeg",
+    descripcion:"Zapatilla Anda 260X en celeste." },
+  { id:3002, filtro:"anda", linea:"Anda", nombre:"Anda 260X Jade", precio:75, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-jade.jpeg",
+    descripcion:"Zapatilla Anda 260X en jade." },
+  { id:3003, filtro:"anda", linea:"Anda", nombre:"Anda 260X Morado", precio:75, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-morado.jpeg",
+    descripcion:"Zapatilla Anda 260X en morado." },
+  { id:3004, filtro:"anda", linea:"Anda", nombre:"Anda 260X Negro", precio:75, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-negro.jpeg",
+    descripcion:"Zapatilla Anda 260X en negro." },
+  { id:3005, filtro:"anda", linea:"Anda", nombre:"Anda 260X Rosa", precio:75, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-rosa.jpeg",
+    descripcion:"Zapatilla Anda 260X en rosa." },
 ];
 
 </script>
