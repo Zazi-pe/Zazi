@@ -606,6 +606,29 @@ select.input{
 
 <main id="inicio">
 
+  <section class="hero">
+    <div class="hero-in">
+      <div class="hero-texto">
+        <h1>Bienvenida a ZAZI.</h1>
+        <p class="lead">Productos seleccionados uno por uno.<br>
+        En ZAZI cada pedido pasa por revisión antes de llegar<br>
+        a tus manos — sin sorpresas, sin apuros.</p>
+        <div class="acciones">
+          <a class="btn btn-solid" href="#catalogo">Ver catálogo</a>
+          <a class="btn btn-line" data-wa href="#contacto">Contactar por WhatsApp</a>
+        </div>
+      </div>
+
+      <figure class="hero-foto" id="vitrina"></figure>
+
+      <ul class="hero-datos">
+        <li><b>100%</b><span>CONTROL DE CALIDAD PAR POR PAR</span></li>
+        <li><b>35-46</b><span>TALLAS 35 A 39 MUJER · 40 A 46 HOMBRE</span></li>
+        <li><b>24H</b><span>ATENCIÓN POR WHATSAPP</span></li>
+      </ul>
+    </div>
+  </section>
+
   <section class="seccion" id="catalogo" aria-labelledby="t-catalogo">
     <div class="cat-cabecera">
       <div>
@@ -673,28 +696,6 @@ select.input{
           <a class="btn btn-line" data-tiktok href="https://www.tiktok.com/@zazi.pe" target="_blank" rel="noopener">TikTok</a>
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="hero">
-    <div class="hero-in">
-      <div class="hero-texto">
-        <p class="lead">Productos seleccionados uno por uno.<br>
-        En ZAZI cada pedido pasa por revisión antes de llegar<br>
-        a tus manos — sin sorpresas, sin apuros.</p>
-        <div class="acciones">
-          <a class="btn btn-solid" href="#catalogo">Ver catálogo</a>
-          <a class="btn btn-line" data-wa href="#contacto">Contactar por WhatsApp</a>
-        </div>
-      </div>
-
-      <figure class="hero-foto" id="vitrina"></figure>
-
-      <ul class="hero-datos">
-        <li><b>100%</b><span>CONTROL DE CALIDAD PAR POR PAR</span></li>
-        <li><b>35-46</b><span>TALLAS 35 A 39 MUJER · 40 A 46 HOMBRE</span></li>
-        <li><b>24H</b><span>ATENCIÓN POR WHATSAPP</span></li>
-      </ul>
     </div>
   </section>
 
@@ -794,7 +795,7 @@ const TIENDA = {
 
 /* Orden y nombre de los filtros del catálogo (el "filtro" de cada producto debe coincidir). */
 const FILTROS = [
-  ["zapatillas", "Zapatillas"], ["anda", "Anda"], ["you", "You"]
+  ["zapatillas", "Zapatillas"], ["anda", "Anda"], ["you", "You"], ["irun", "I-RUN"]
 ];
 
 /* Cada producto:
@@ -837,6 +838,18 @@ const PRODUCTOS = [
     descripcion:"Crema con paneles en rosa viejo, malla y líneas curvas superpuestas, con cordones gruesos y suela chunky con relieve. Un par delicado y con volumen." },
   { id:4012, filtro:"you", linea:"You", nombre:"You Chunky Relieve Blanco Gris", precio:75, tallas:[35, 40], estado:"disponible", foto:"fotos/you-chunky-relieve-blanco-gris.jpeg",
     descripcion:"Crema con paneles en gris, malla y contornos cosidos en capas, con cordones gruesos y suela alta con relieve. Un par neutro con volumen, fácil de combinar." },
+  { id:5001, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Horizon Marrón Crema", precio:null, tallas:[38, 42], estado:"disponible", foto:"fotos/i-run-horizon-marrón-crema.jpeg",
+    descripcion:"Marrón y crema en malla y mesh, con suela gruesa tipo trail y logo lateral. Un par robusto, ideal para uso outdoor." },
+  { id:5002, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Horizon Negro Gris", precio:null, tallas:[35, 38], estado:"disponible", foto:"fotos/i-run-horizon-negro-gris.jpeg",
+    descripcion:"Gris y negro en mesh técnico, con suela alta tipo trail y agujetas reflectantes. Un par resistente, pensado para terreno irregular." },
+  { id:5003, filtro:"irun", linea:"I-RUN", nombre:"I-RUN STEP Gris Luna", precio:null, tallas:[38, 43], estado:"disponible", foto:"fotos/i-run-step-gris-luna.jpeg",
+    descripcion:"Beige claro con paneles de cuero y malla, suela gum y contraste verde petróleo en el talón. Un par cómodo y fácil de combinar." },
+  { id:5004, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Bostep Majesty Blanco", precio:null, tallas:[36, 39], estado:"disponible", foto:"fotos/i-run-bostep-majesty-blanco.jpeg",
+    descripcion:"Blanco total en cuero con logo B lateral, talón rosa y suela con flechas en relieve. Un modelo limpio y sobrio para uso diario." },
+  { id:5005, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Urbanas Cloud Blanco Morado", precio:null, tallas:[35, 38], estado:"disponible", foto:"fotos/i-run-urbanas-cloud-blanco-morado.jpeg",
+    descripcion:"Blanco total en cuero liso con detalles lila en el talón y agujetas. Un par urbano, minimalista y fácil de combinar." },
+  { id:5006, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Bostep RAVENX Crema Gris", precio:null, tallas:[40, 44], estado:"disponible", foto:"fotos/i-run-bostep-ravenx-crema-gris.jpeg",
+    descripcion:"Crema y gris en cuero, con suela plataforma bicolor y logo B lateral. Un par sobrio, versátil para el día a día." },
 ];
 
 </script>
@@ -918,6 +931,8 @@ const PRODUCTOS = [
     let lista = PRODUCTOS.filter((p) => (estado.filtro === "all" || p.filtro === estado.filtro) &&
       (!q || norm(p.nombre + " " + p.linea).includes(q)));
     const valor = (p, vacio) => (consultar(p) ? vacio : p.precio);
+    // "Recomendados" muestra primero lo último agregado al catálogo (mayor id = más nuevo).
+    if (estado.orden === "destacados") lista = [...lista].sort((a, b) => b.id - a.id);
     if (estado.orden === "menor") lista = [...lista].sort((a, b) => valor(a, Infinity) - valor(b, Infinity));
     if (estado.orden === "mayor") lista = [...lista].sort((a, b) => valor(b, -Infinity) - valor(a, -Infinity));
     return lista;
@@ -948,7 +963,7 @@ const PRODUCTOS = [
   }
 
   /* ---------- Vitrina: muestra el modelo elegido abajo ---------- */
-  const ID_VITRINA = 3001; // Anda 260X Celeste — para mostrar otro modelo, cambia este número por el "id" de otro producto
+  const ID_VITRINA = 5002; // I-RUN Horizon Negro Gris — para mostrar otro modelo, cambia este número por el "id" de otro producto
   function pintarVitrina() {
     const el = $("#vitrina");
     const p = porId.get(ID_VITRINA);
