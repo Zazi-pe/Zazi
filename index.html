@@ -210,6 +210,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .hoja-tallas li{border-bottom:1px solid var(--linea)}
 .h-talla{width:100%;display:flex;align-items:center;justify-content:space-between;padding:20px;background:none;border:0;font-size:1.12rem;text-align:left}
 .h-talla:hover,.h-talla:focus-visible{background:#fafafa}
+.h-talla.agotada{position:relative;color:var(--gris);cursor:not-allowed}
+.h-talla.agotada::after{content:"";position:absolute;left:20px;right:20px;top:0;bottom:0;background:linear-gradient(to top right, transparent calc(50% - 1px), var(--linea) 50%, transparent calc(50% + 1px))}
+.h-talla.agotada:hover{background:none}
+.h-talla.agotada .h-add{visibility:hidden}
 .h-add{display:inline-flex;align-items:center;gap:8px}
 .h-add b{font-weight:400;font-size:1.4rem;line-height:1}
 
@@ -551,29 +555,29 @@ const PRODUCTOS = [
     descripcion:"Negro y gris degradado en malla tejida, con líneas curvas en los laterales y mediasuela gruesa en celeste y blanco. Oscura, con un toque de color en la suela." },
   { id:3005, filtro:"anda", linea:"Anda", nombre:"Anda 260X Rosa", precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-rosa.jpeg",
     descripcion:"Rosa palo y crema en malla tejida, con el 260X marcado en el lateral y mediasuela gruesa en capas. Un par suave y fácil de combinar." },
-  { id:4001, filtro:"you", linea:"You", nombre:"You Urbano Onda Gris Lila", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-urbano-onda-gris-lila.jpeg",
+  { id:4001, filtro:"you", linea:"You", nombre:"You Urbano Onda Gris Lila", precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-onda-gris-lila.jpeg",
     descripcion:"Crema con detalles en gris lila, paneles lisos y malla, con líneas curvas en los laterales y plataforma gruesa. Un par claro y fácil de combinar." },
-  { id:4002, filtro:"you", linea:"You", nombre:"You Urbano Onda Beige", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-urbano-onda-beige.jpeg",
+  { id:4002, filtro:"you", linea:"You", nombre:"You Urbano Onda Beige", precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-onda-beige.jpeg",
     descripcion:"Crema con detalles en beige, paneles lisos y malla, con franjas curvas en los laterales y plataforma gruesa de borde ondulado. Un par cálido y sencillo de llevar." },
   { id:4003, filtro:"you", linea:"You", nombre:"You Chunky Trazo Lila", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-chunky-trazo-lila.jpeg",
     descripcion:"Crema con detalles en lila, malla y paneles lisos superpuestos, con cordones gruesos y suela chunky con relieve. Un par suave y con presencia." },
   { id:4004, filtro:"you", linea:"You", nombre:"You Chunky Trazo Beige", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-chunky-trazo-beige.jpeg",
     descripcion:"Crema con detalles en beige, malla y paneles superpuestos en líneas curvas, con suela gruesa de perfil marcado. Un par neutro y fácil de combinar." },
-  { id:4005, filtro:"you", linea:"You", nombre:"You Deportivo Blanco Gris", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-deportivo-blanco-gris.jpeg",
+  { id:4005, filtro:"you", linea:"You", nombre:"You Deportivo Blanco Gris", precio:69.90, tallas:[35, 40], agotadas:["35","36","37","40"], estado:"disponible", foto:"fotos/you-deportivo-blanco-gris.jpeg",
     descripcion:"Blanco con detalles en gris azulado, malla y paneles, con una S marcada en el lateral y franja gris en la suela. Un par limpio y fácil de combinar." },
-  { id:4006, filtro:"you", linea:"You", nombre:"You Deportivo Blanco Marrón", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-deportivo-blanco-marrón.jpeg",
+  { id:4006, filtro:"you", linea:"You", nombre:"You Deportivo Blanco Marrón", precio:69.90, tallas:[35, 40], agotadas:["35","36","37","40"], estado:"disponible", foto:"fotos/you-deportivo-blanco-marrón.jpeg",
     descripcion:"Blanco con contornos en marrón claro, malla y una S en el lateral, con degradado rosado en la mediasuela. Un par suave con un toque cálido." },
   { id:4007, filtro:"you", linea:"You", nombre:"You Cápsula Blanco Rosa", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-cápsula-blanco-rosa.jpeg",
     descripcion:"Blanco con toques en rosa pálido, malla y paneles, con líneas curvas en el lateral y cápsula de aire visible en el talón. Claro, ligero y fácil de combinar." },
-  { id:4008, filtro:"you", linea:"You", nombre:"You Cápsula Blanco Beige", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-cápsula-blanco-beige.jpeg",
+  { id:4008, filtro:"you", linea:"You", nombre:"You Cápsula Blanco Beige", precio:69.90, tallas:[35, 40], agotadas:["35","36"], estado:"disponible", foto:"fotos/you-cápsula-blanco-beige.jpeg",
     descripcion:"Blanco con detalles en beige, malla y paneles superpuestos, con cordones gruesos y cápsula de aire visible en el talón. Un par neutro con un toque cálido." },
-  { id:4009, filtro:"you", linea:"You", nombre:"You Urbano Marco Gris Azul", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-urbano-marco-gris-azul.jpeg",
+  { id:4009, filtro:"you", linea:"You", nombre:"You Urbano Marco Gris Azul", precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-marco-gris-azul.jpeg",
     descripcion:"Blanco con detalles en gris azul, malla enmarcada por paneles lisos, cordones gruesos y plataforma alta con borde lila. Un par suave y fácil de combinar." },
-  { id:4010, filtro:"you", linea:"You", nombre:"You Urbano Marco Beige", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-urbano-marco-beige.jpeg",
+  { id:4010, filtro:"you", linea:"You", nombre:"You Urbano Marco Beige", precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-marco-beige.jpeg",
     descripcion:"Blanco con tonos beige, malla enmarcada por paneles lisos y plataforma alta con borde gris en la suela. Un par neutro, limpio y sencillo de llevar." },
-  { id:4011, filtro:"you", linea:"You", nombre:"You Chunky Relieve Blanco Rosa", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-chunky-relieve-blanco-rosa.jpeg",
+  { id:4011, filtro:"you", linea:"You", nombre:"You Chunky Relieve Blanco Rosa", precio:69.90, tallas:[35, 40], agotadas:["35","36"], estado:"disponible", foto:"fotos/you-chunky-relieve-blanco-rosa.jpeg",
     descripcion:"Crema con paneles en rosa viejo, malla y líneas curvas superpuestas, con cordones gruesos y suela chunky con relieve. Un par delicado y con volumen." },
-  { id:4012, filtro:"you", linea:"You", nombre:"You Chunky Relieve Blanco Gris", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-chunky-relieve-blanco-gris.jpeg",
+  { id:4012, filtro:"you", linea:"You", nombre:"You Chunky Relieve Blanco Gris", precio:69.90, tallas:[35, 40], agotadas:["35"], estado:"disponible", foto:"fotos/you-chunky-relieve-blanco-gris.jpeg",
     descripcion:"Crema con paneles en gris, malla y contornos cosidos en capas, con cordones gruesos y suela alta con relieve. Un par neutro con volumen, fácil de combinar." },
   { id:5001, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Horizon Marrón Crema", precio:99.90, tallas:[38, 43], estado:"disponible", foto:"fotos/i-run-horizon-marrón-crema.jpeg",
     descripcion:"Marrón y crema en malla y mesh, con suela gruesa tipo trail y logo lateral. Un par robusto, ideal para uso outdoor." },
@@ -774,11 +778,14 @@ const PRODUCTOS = [
         <span class="h-linea">${esc(p.linea)}</span>
         <span class="h-precio">${precioTxt(p)}</span>
       </div>`;
-    $("#h-tallas").innerHTML = tallasDe(p).map((t) => `
-      <li><button type="button" class="h-talla" data-talla="${esc(t)}">
+    const agotadas = (p.agotadas || []).map(String);
+    $("#h-tallas").innerHTML = tallasDe(p).map((t) => {
+      const sinStock = agotadas.includes(t);
+      return `<li><button type="button" class="h-talla${sinStock ? " agotada" : ""}" data-talla="${esc(t)}"${sinStock ? " disabled aria-disabled=\"true\"" : ""}>
         <span>${t === "Único" ? "Talla única" : "Talla " + esc(t)}</span>
-        <span class="h-add">Añadir <b aria-hidden="true">+</b></span>
-      </button></li>`).join("");
+        <span class="h-add">${sinStock ? "Sin stock" : `Añadir <b aria-hidden="true">+</b>`}</span>
+      </button></li>`;
+    }).join("");
     if (!hoja.open) hoja.showModal();
     hoja.scrollTop = 0;
     document.documentElement.classList.add("bloqueado");
@@ -786,7 +793,7 @@ const PRODUCTOS = [
   hoja.addEventListener("click", (e) => {
     if (e.target === hoja || e.target.closest("[data-cerrar]")) { hoja.close(); return; }
     const b = e.target.closest(".h-talla");
-    if (b && productoHoja) {
+    if (b && !b.disabled && productoHoja) {
       agregar(productoHoja.id, b.dataset.talla);
       hoja.close();
       abrirCarrito();
