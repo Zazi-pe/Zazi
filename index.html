@@ -182,6 +182,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .modal-media img,.modal-media .sin-foto{width:100%;height:100%;aspect-ratio:4/5;object-fit:cover}
 .modal-cuerpo{padding:48px 32px 0;display:flex;flex-direction:column;gap:22px;min-width:0;align-self:stretch}
 .m-nombre{font-size:clamp(1.6rem,3vw,2.1rem);padding-right:36px}
+.m-marca{margin-top:-14px;font-size:.875rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--gris)}
 .m-desc{color:var(--gris);line-height:1.65;max-width:48ch}
 .m-nota{font-size:.875rem;padding:10px 12px;background:var(--piedra);border-radius:var(--radio)}
 .m-acciones{position:sticky;bottom:0;z-index:2;margin:auto -32px 0;padding:14px 32px 20px;background:#fff;border-top:1px solid var(--linea);display:flex;flex-direction:column;gap:10px}
@@ -191,8 +192,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 /* Opciones de la ficha: color y talla (estilo etiqueta + cuadritos) */
 .m-opcion{display:flex;flex-direction:column;gap:12px}
 .m-etq{font-family:var(--f-titulo);font-weight:500;font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;line-height:1.2}
-.m-colores{display:flex;flex-wrap:wrap;gap:10px}
-.m-color{width:48px;height:48px;padding:3px;border:1px solid var(--linea);border-radius:0;background:#fff;display:grid}
+.m-colores{display:flex;flex-wrap:wrap;gap:8px}
+.m-color{width:34px;height:34px;padding:3px;border:1px solid var(--linea);border-radius:0;background:#fff;display:grid}
 .m-color span{display:block;width:100%;height:100%;border:1px solid rgba(0,0,0,.08)}
 .m-color:hover{border-color:#9a9a9a}
 .m-color[aria-checked="true"]{border:1.5px solid var(--tinta)}
@@ -200,7 +201,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 /* Tallas dentro de la ficha: 3 por fila */
 .m-tallas{display:flex;flex-direction:column;gap:12px;padding-bottom:20px}
 .m-tallas-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.m-talla{min-height:52px;padding:0 6px;border:1px solid var(--linea);border-radius:var(--radio);background:#fff;font-size:1rem;font-weight:500;font-variant-numeric:tabular-nums;transition:border-color .12s,background-color .12s,color .12s}
+.m-talla{min-height:42px;padding:0 6px;border:1px solid var(--linea);border-radius:var(--radio);background:#fff;font-size:.9375rem;font-weight:500;font-variant-numeric:tabular-nums;transition:border-color .12s,background-color .12s,color .12s}
 .m-talla:hover{border-color:var(--tinta)}
 .m-talla[aria-checked="true"]{background:var(--tinta);border-color:var(--tinta);color:#fff}
 .m-talla.agotada{background:var(--piedra);border-color:var(--piedra);color:#9a9a9a;text-decoration:line-through;text-decoration-thickness:1px;cursor:not-allowed}
@@ -789,9 +790,10 @@ const PRODUCTOS = [
         </div>
       </div>`;
     const textoBoton = !puedeAgregar ? (p.estado === "agotado" ? "Agotado" : "Próximamente")
-      : unica ? "Añadir al carrito" : "Selecciona una talla";
+      : unica ? textoAgregar(p) : "Selecciona una talla";
     $("#m-cuerpo").innerHTML = `
       <h2 class="m-nombre" id="m-nombre">${esc(p.nombre)}</h2>
+      <p class="m-marca">${esc(p.linea)}</p>
       <p class="m-desc">${esc(p.descripcion)}</p>
       ${nota}
       ${bloqueColor}
@@ -811,13 +813,17 @@ const PRODUCTOS = [
     history.replaceState(null, "", "#p" + p.id);
   }
 
+  function textoAgregar(p) {
+    return consultar(p) ? "Añadir al carrito" : "Añadir al carrito - " + soles(p.precio);
+  }
+
   function elegirTalla(boton) {
     $$("#m-cuerpo .m-talla").forEach((b) => b.setAttribute("aria-checked", String(b === boton)));
     const t = boton.dataset.talla;
     $("#m-talla-elegida").textContent = ": " + (t === "Único" ? "Única" : t);
     const agregarBtn = $("#m-agregar");
     agregarBtn.disabled = false;
-    agregarBtn.textContent = t === "Único" ? "Añadir al carrito" : `Añadir talla ${t} al carrito`;
+    agregarBtn.textContent = textoAgregar(productoAbierto);
   }
 
   modal.addEventListener("click", (e) => {
