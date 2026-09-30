@@ -177,9 +177,9 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
 /* Ficha de producto */
 #modal{width:min(880px,calc(100vw - 32px));max-height:calc(100dvh - 48px);margin:auto;overflow:auto;border-radius:12px}
-.modal-in{display:grid;grid-template-columns:1fr 1fr;align-items:start}
+.modal-in{display:grid;grid-template-columns:1fr 1fr}
 .modal-media{background:var(--piedra)}
-.modal-media img,.modal-media .sin-foto{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover}
+.modal-media img,.modal-media .sin-foto{width:100%;height:100%;aspect-ratio:4/5;object-fit:cover}
 .modal-cuerpo{padding:48px 32px 0;display:flex;flex-direction:column;gap:22px;min-width:0;align-self:stretch}
 .m-nombre{font-size:clamp(1.6rem,3vw,2.1rem);padding-right:36px}
 .m-desc{color:var(--gris);line-height:1.65;max-width:48ch}
@@ -293,7 +293,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 /* ---------- Tablet y celular ---------- */
 @media (max-width:960px){
   .hero-in{grid-template-columns:1fr;gap:32px;padding-top:40px}
-  .hero-foto{justify-self:stretch;max-width:none;aspect-ratio:4/5}
+  .hero-foto{justify-self:stretch;max-width:none;aspect-ratio:1/1}
   .hero-datos{grid-template-columns:1fr;margin-top:8px}
   .hero-datos li,.hero-datos li+li{padding:18px 0;border-left:0}
   .hero-datos li+li{border-top:1px solid var(--linea)}
@@ -320,6 +320,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   .wa-flotante{width:52px;height:52px;padding:0;justify-content:center}
   #modal{position:fixed;inset:auto 0 0 0;margin:0;width:100%;max-height:92dvh;border-radius:14px 14px 0 0}
   .modal-in{grid-template-columns:1fr}
+  .modal-media img,.modal-media .sin-foto{aspect-ratio:1/1;max-height:46dvh}
   .modal-cuerpo{padding:22px 20px 0}
   .m-acciones{margin:auto -20px 0;padding:12px 20px calc(16px + env(safe-area-inset-bottom,0px))}
 }
@@ -791,6 +792,7 @@ const PRODUCTOS = [
       : unica ? "Añadir al carrito" : "Selecciona una talla";
     $("#m-cuerpo").innerHTML = `
       <h2 class="m-nombre" id="m-nombre">${esc(p.nombre)}</h2>
+      <p class="m-desc">${esc(p.descripcion)}</p>
       ${nota}
       ${bloqueColor}
       ${bloqueTallas}
