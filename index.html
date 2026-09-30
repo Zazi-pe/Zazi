@@ -180,14 +180,25 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .modal-in{display:grid;grid-template-columns:1fr 1fr}
 .modal-media{background:var(--piedra)}
 .modal-media img,.modal-media .sin-foto{width:100%;height:100%;aspect-ratio:4/5;object-fit:cover}
-.modal-cuerpo{padding:48px 32px 32px;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.modal-cuerpo{padding:48px 32px 0;display:flex;flex-direction:column;gap:16px;min-width:0}
 .m-nombre{font-size:clamp(1.6rem,3vw,2.1rem);padding-right:36px}
 .m-desc{color:var(--gris);line-height:1.65;max-width:48ch}
 .m-nota{font-size:.875rem;padding:10px 12px;background:var(--piedra);border-radius:var(--radio)}
-.m-acciones{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.m-acciones{position:sticky;bottom:0;z-index:2;margin:auto -32px 0;padding:14px 32px 20px;background:#fff;border-top:1px solid var(--linea);display:flex;flex-direction:column;gap:10px}
 .m-acciones .btn{min-height:52px}
-.cerrar{position:absolute;top:12px;right:12px;z-index:3;width:40px;height:40px;display:grid;place-items:center;background:#fff;border:0;border-radius:999px;font-size:1.2rem;line-height:1}
+.cerrar{position:sticky;top:12px;z-index:3;width:40px;height:40px;margin:12px 12px -52px auto;display:grid;place-items:center;background:#fff;border:0;border-radius:999px;font-size:1.2rem;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .cerrar:hover{background:var(--piedra)}
+/* Tallas dentro de la ficha: 3 por fila */
+.m-tallas{display:flex;flex-direction:column;gap:12px;margin-top:4px;padding-bottom:20px}
+.m-tallas h3{font-family:var(--f-titulo);font-weight:600;text-transform:uppercase;letter-spacing:.03em;font-size:1.2rem;line-height:1.1}
+.m-tallas-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.m-talla{min-height:52px;padding:0 6px;border:1px solid var(--linea);border-radius:var(--radio);background:#fff;font-size:1rem;font-weight:500;font-variant-numeric:tabular-nums;transition:border-color .12s,background-color .12s,color .12s}
+.m-talla:hover{border-color:var(--tinta)}
+.m-talla[aria-checked="true"]{background:var(--tinta);border-color:var(--tinta);color:#fff}
+.m-talla.agotada{background:var(--piedra);border-color:var(--piedra);color:#9a9a9a;text-decoration:line-through;text-decoration-thickness:1px;cursor:not-allowed}
+.m-talla.agotada:hover{border-color:var(--piedra)}
+.m-tallas-ayuda{font-size:.875rem;color:var(--gris)}
+
 
 /* Paneles desde abajo: "Add to bag" y carrito */
 #hoja,#carrito{position:fixed;inset:auto 0 0 0;margin:0 auto;width:min(560px,100vw);max-height:85dvh;border-radius:14px 14px 0 0;box-shadow:0 -12px 32px rgba(0,0,0,.18);background:#fff}
@@ -302,7 +313,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   #modal{position:fixed;inset:auto 0 0 0;margin:0;width:100%;max-height:92dvh;border-radius:14px 14px 0 0}
   .modal-in{grid-template-columns:1fr}
   .modal-media img,.modal-media .sin-foto{aspect-ratio:1/1;max-height:46dvh}
-  .modal-cuerpo{padding:22px 20px 24px}
+  .modal-cuerpo{padding:22px 20px 0}
+  .m-acciones{margin:auto -20px 0;padding:12px 20px calc(16px + env(safe-area-inset-bottom,0px))}
 }
 @media (max-width:420px){
   .hoja-prod{grid-template-columns:96px 1fr;gap:14px}
@@ -736,12 +748,29 @@ const PRODUCTOS = [
     const puedeAgregar = p.estado === "disponible";
     const nota = p.estado === "agotado" ? '<p class="m-nota">Agotado por ahora.</p>'
       : p.estado === "proximamente" ? '<p class="m-nota">Este modelo llega pronto.</p>' : "";
+    const agotadas = (p.agotadas || []).map(String);
+    const tallas = tallasDe(p);
+    const unica = tallas.length === 1 && tallas[0] === "Único";
+    const bloqueTallas = !puedeAgregar ? "" : `
+      <div class="m-tallas">
+        <h3 id="m-tallas-t">Elige tu talla</h3>
+        <div class="m-tallas-grid" role="radiogroup" aria-labelledby="m-tallas-t">
+          ${tallas.map((t) => {
+            const sinStock = agotadas.includes(t);
+            const txt = t === "Único" ? "Única" : esc(t);
+            return `<button type="button" class="m-talla${sinStock ? " agotada" : ""}" role="radio" aria-checked="${unica && !sinStock ? "true" : "false"}" data-talla="${esc(t)}"${sinStock ? ` disabled aria-label="Talla ${txt}, sin stock"` : ` aria-label="Talla ${txt}"`}>${txt}</button>`;
+          }).join("")}
+        </div>
+      </div>`;
+    const textoBoton = !puedeAgregar ? (p.estado === "agotado" ? "Agotado" : "Próximamente")
+      : unica ? "Añadir al carrito" : "Selecciona una talla";
     $("#m-cuerpo").innerHTML = `
       <h2 class="m-nombre" id="m-nombre">${esc(p.nombre)}</h2>
       <p class="m-desc">${esc(p.descripcion)}</p>
       ${nota}
+      ${bloqueTallas}
       <div class="m-acciones">
-        <button class="btn btn-solid btn-ancho" type="button" id="m-agregar"${puedeAgregar ? "" : " disabled"}>Añadir al carrito</button>
+        <button class="btn btn-solid btn-ancho" type="button" id="m-agregar"${puedeAgregar && unica ? "" : " disabled"}>${textoBoton}</button>
       </div>`;
 
     if (!modal.open) modal.showModal();
@@ -752,11 +781,22 @@ const PRODUCTOS = [
 
   modal.addEventListener("click", (e) => {
     if (e.target === modal || e.target.closest("[data-cerrar]")) modal.close();
+    const talla = e.target.closest(".m-talla");
+    if (talla && !talla.disabled) {
+      $$("#m-cuerpo .m-talla").forEach((b) => b.setAttribute("aria-checked", String(b === talla)));
+      const boton = $("#m-agregar");
+      boton.disabled = false;
+      boton.textContent = talla.dataset.talla === "Único" ? "Añadir al carrito" : `Añadir talla ${talla.dataset.talla} al carrito`;
+      return;
+    }
     const boton = e.target.closest("#m-agregar");
     if (boton && !boton.disabled && productoAbierto) {
+      const elegida = $("#m-cuerpo .m-talla[aria-checked=\"true\"]");
+      if (!elegida) return;
       const p = productoAbierto;
+      agregar(p.id, elegida.dataset.talla);
       modal.close();
-      abrirHoja(p);
+      abrirCarrito();
     }
   });
   modal.addEventListener("close", () => {
