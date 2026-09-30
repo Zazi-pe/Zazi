@@ -177,10 +177,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
 /* Ficha de producto */
 #modal{width:min(880px,calc(100vw - 32px));max-height:calc(100dvh - 48px);margin:auto;overflow:auto;border-radius:12px}
-.modal-in{display:grid;grid-template-columns:1fr 1fr}
+.modal-in{display:grid;grid-template-columns:1fr 1fr;align-items:start}
 .modal-media{background:var(--piedra)}
-.modal-media img,.modal-media .sin-foto{width:100%;height:100%;aspect-ratio:4/5;object-fit:cover}
-.modal-cuerpo{padding:48px 32px 0;display:flex;flex-direction:column;gap:16px;min-width:0}
+.modal-media img,.modal-media .sin-foto{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover}
+.modal-cuerpo{padding:48px 32px 0;display:flex;flex-direction:column;gap:22px;min-width:0;align-self:stretch}
 .m-nombre{font-size:clamp(1.6rem,3vw,2.1rem);padding-right:36px}
 .m-desc{color:var(--gris);line-height:1.65;max-width:48ch}
 .m-nota{font-size:.875rem;padding:10px 12px;background:var(--piedra);border-radius:var(--radio)}
@@ -188,9 +188,17 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .m-acciones .btn{min-height:52px}
 .cerrar{position:sticky;top:12px;z-index:3;width:40px;height:40px;margin:12px 12px -52px auto;display:grid;place-items:center;background:#fff;border:0;border-radius:999px;font-size:1.2rem;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .cerrar:hover{background:var(--piedra)}
+/* Opciones de la ficha: color y talla (estilo etiqueta + cuadritos) */
+.m-opcion{display:flex;flex-direction:column;gap:12px}
+.m-etq{font-family:var(--f-titulo);font-weight:500;font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;line-height:1.2}
+.m-colores{display:flex;flex-wrap:wrap;gap:10px}
+.m-color{width:48px;height:48px;padding:3px;border:1px solid var(--linea);border-radius:0;background:#fff;display:grid}
+.m-color span{display:block;width:100%;height:100%;border:1px solid rgba(0,0,0,.08)}
+.m-color:hover{border-color:#9a9a9a}
+.m-color[aria-checked="true"]{border:1.5px solid var(--tinta)}
+
 /* Tallas dentro de la ficha: 3 por fila */
-.m-tallas{display:flex;flex-direction:column;gap:12px;margin-top:4px;padding-bottom:20px}
-.m-tallas h3{font-family:var(--f-titulo);font-weight:600;text-transform:uppercase;letter-spacing:.03em;font-size:1.2rem;line-height:1.1}
+.m-tallas{display:flex;flex-direction:column;gap:12px;padding-bottom:20px}
 .m-tallas-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .m-talla{min-height:52px;padding:0 6px;border:1px solid var(--linea);border-radius:var(--radio);background:#fff;font-size:1rem;font-weight:500;font-variant-numeric:tabular-nums;transition:border-color .12s,background-color .12s,color .12s}
 .m-talla:hover{border-color:var(--tinta)}
@@ -285,7 +293,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 /* ---------- Tablet y celular ---------- */
 @media (max-width:960px){
   .hero-in{grid-template-columns:1fr;gap:32px;padding-top:40px}
-  .hero-foto{justify-self:stretch;max-width:none;aspect-ratio:1/1}
+  .hero-foto{justify-self:stretch;max-width:none;aspect-ratio:4/5}
   .hero-datos{grid-template-columns:1fr;margin-top:8px}
   .hero-datos li,.hero-datos li+li{padding:18px 0;border-left:0}
   .hero-datos li+li{border-top:1px solid var(--linea)}
@@ -312,7 +320,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   .wa-flotante{width:52px;height:52px;padding:0;justify-content:center}
   #modal{position:fixed;inset:auto 0 0 0;margin:0;width:100%;max-height:92dvh;border-radius:14px 14px 0 0}
   .modal-in{grid-template-columns:1fr}
-  .modal-media img,.modal-media .sin-foto{aspect-ratio:1/1;max-height:46dvh}
   .modal-cuerpo{padding:22px 20px 0}
   .m-acciones{margin:auto -20px 0;padding:12px 20px calc(16px + env(safe-area-inset-bottom,0px))}
 }
@@ -556,53 +563,55 @@ const FILTROS = [
    estado: "disponible" | "agotado" | "proximamente"
    tallas: [40,44] (rango numérico) | ["S","M","L","XL"] (lista) | ["Único"]
    foto: ruta de la imagen (por ejemplo "fotos/vestido.jpg"), o null si aún no hay foto
+   modelo: nombre del modelo sin el color (los productos con el mismo modelo se muestran como colores del mismo par)
+   color: nombre del color · colores: uno o dos colores para el cuadrito, por ejemplo ["#FFFFFF","#9A9A9A"]
    precio: null   →  la tienda muestra "Consultar precio" y el cliente pregunta por WhatsApp */
 const PRODUCTOS = [
-  { id:3001, filtro:"anda", linea:"Anda", nombre:"Anda 260X Celeste", precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-celeste.jpeg",
+  { id:3001, filtro:"anda", linea:"Anda", nombre:"Anda 260X Celeste", modelo:"Anda 260X", color:"Celeste", colores:["#9CCBEA"], precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-celeste.jpeg",
     descripcion:"Degradado de celeste a rosa y blanco en malla tejida, con la mediasuela gruesa siguiendo el mismo cambio de color. Un par llamativo con colores suaves." },
-  { id:3002, filtro:"anda", linea:"Anda", nombre:"Anda 260X Jade", precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-jade.jpeg",
+  { id:3002, filtro:"anda", linea:"Anda", nombre:"Anda 260X Jade", modelo:"Anda 260X", color:"Jade", colores:["#8FD1B5"], precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-jade.jpeg",
     descripcion:"Verde menta pálido y blanco en malla tejida, con detalles en durazno en los laterales y mediasuela gruesa. Un par fresco y fácil de llevar." },
-  { id:3003, filtro:"anda", linea:"Anda", nombre:"Anda 260X Morado", precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-morado.jpeg",
+  { id:3003, filtro:"anda", linea:"Anda", nombre:"Anda 260X Morado", modelo:"Anda 260X", color:"Morado", colores:["#A58BD0"], precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-morado.jpeg",
     descripcion:"Lila y blanco en malla tejida, con líneas en relieve en los laterales y mediasuela gruesa en tono lavanda. Un par claro, sobrio y ligero a la vista." },
-  { id:3004, filtro:"anda", linea:"Anda", nombre:"Anda 260X Negro", precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-negro.jpeg",
+  { id:3004, filtro:"anda", linea:"Anda", nombre:"Anda 260X Negro", modelo:"Anda 260X", color:"Negro", colores:["#1A1A1A"], precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-negro.jpeg",
     descripcion:"Negro y gris degradado en malla tejida, con líneas curvas en los laterales y mediasuela gruesa en celeste y blanco. Oscura, con un toque de color en la suela." },
-  { id:3005, filtro:"anda", linea:"Anda", nombre:"Anda 260X Rosa", precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-rosa.jpeg",
+  { id:3005, filtro:"anda", linea:"Anda", nombre:"Anda 260X Rosa", modelo:"Anda 260X", color:"Rosa", colores:["#F2B8C6"], precio:69.90, tallas:[35, 39], estado:"disponible", foto:"fotos/anda-260x-rosa.jpeg",
     descripcion:"Rosa palo y crema en malla tejida, con el 260X marcado en el lateral y mediasuela gruesa en capas. Un par suave y fácil de combinar." },
-  { id:4001, filtro:"you", linea:"You", nombre:"You Urbano Onda Gris Lila", precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-onda-gris-lila.jpeg",
+  { id:4001, filtro:"you", linea:"You", nombre:"You Urbano Onda Gris Lila", modelo:"You Urbano Onda", color:"Gris Lila", colores:["#B0A6BE"], precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-onda-gris-lila.jpeg",
     descripcion:"Crema con detalles en gris lila, paneles lisos y malla, con líneas curvas en los laterales y plataforma gruesa. Un par claro y fácil de combinar." },
-  { id:4002, filtro:"you", linea:"You", nombre:"You Urbano Onda Beige", precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-onda-beige.jpeg",
+  { id:4002, filtro:"you", linea:"You", nombre:"You Urbano Onda Beige", modelo:"You Urbano Onda", color:"Beige", colores:["#D8C3A2"], precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-onda-beige.jpeg",
     descripcion:"Crema con detalles en beige, paneles lisos y malla, con franjas curvas en los laterales y plataforma gruesa de borde ondulado. Un par cálido y sencillo de llevar." },
-  { id:4003, filtro:"you", linea:"You", nombre:"You Chunky Trazo Lila", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-chunky-trazo-lila.jpeg",
+  { id:4003, filtro:"you", linea:"You", nombre:"You Chunky Trazo Lila", modelo:"You Chunky Trazo", color:"Lila", colores:["#C4A8E0"], precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-chunky-trazo-lila.jpeg",
     descripcion:"Crema con detalles en lila, malla y paneles lisos superpuestos, con cordones gruesos y suela chunky con relieve. Un par suave y con presencia." },
-  { id:4004, filtro:"you", linea:"You", nombre:"You Chunky Trazo Beige", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-chunky-trazo-beige.jpeg",
+  { id:4004, filtro:"you", linea:"You", nombre:"You Chunky Trazo Beige", modelo:"You Chunky Trazo", color:"Beige", colores:["#D8C3A2"], precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-chunky-trazo-beige.jpeg",
     descripcion:"Crema con detalles en beige, malla y paneles superpuestos en líneas curvas, con suela gruesa de perfil marcado. Un par neutro y fácil de combinar." },
-  { id:4005, filtro:"you", linea:"You", nombre:"You Deportivo Blanco Gris", precio:69.90, tallas:[35, 40], agotadas:["35","36","37","40"], estado:"disponible", foto:"fotos/you-deportivo-blanco-gris.jpeg",
+  { id:4005, filtro:"you", linea:"You", nombre:"You Deportivo Blanco Gris", modelo:"You Deportivo", color:"Blanco Gris", colores:["#FFFFFF", "#9A9A9A"], precio:69.90, tallas:[35, 40], agotadas:["35","36","37","40"], estado:"disponible", foto:"fotos/you-deportivo-blanco-gris.jpeg",
     descripcion:"Blanco con detalles en gris azulado, malla y paneles, con una S marcada en el lateral y franja gris en la suela. Un par limpio y fácil de combinar." },
-  { id:4006, filtro:"you", linea:"You", nombre:"You Deportivo Blanco Marrón", precio:69.90, tallas:[35, 40], agotadas:["35","36","37","40"], estado:"disponible", foto:"fotos/you-deportivo-blanco-marrón.jpeg",
+  { id:4006, filtro:"you", linea:"You", nombre:"You Deportivo Blanco Marrón", modelo:"You Deportivo", color:"Blanco Marrón", colores:["#FFFFFF", "#8B5A3C"], precio:69.90, tallas:[35, 40], agotadas:["35","36","37","40"], estado:"disponible", foto:"fotos/you-deportivo-blanco-marrón.jpeg",
     descripcion:"Blanco con contornos en marrón claro, malla y una S en el lateral, con degradado rosado en la mediasuela. Un par suave con un toque cálido." },
-  { id:4007, filtro:"you", linea:"You", nombre:"You Cápsula Blanco Rosa", precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-cápsula-blanco-rosa.jpeg",
+  { id:4007, filtro:"you", linea:"You", nombre:"You Cápsula Blanco Rosa", modelo:"You Cápsula", color:"Blanco Rosa", colores:["#FFFFFF", "#F2B8C6"], precio:69.90, tallas:[35, 40], estado:"disponible", foto:"fotos/you-cápsula-blanco-rosa.jpeg",
     descripcion:"Blanco con toques en rosa pálido, malla y paneles, con líneas curvas en el lateral y cápsula de aire visible en el talón. Claro, ligero y fácil de combinar." },
-  { id:4008, filtro:"you", linea:"You", nombre:"You Cápsula Blanco Beige", precio:69.90, tallas:[35, 40], agotadas:["35","36"], estado:"disponible", foto:"fotos/you-cápsula-blanco-beige.jpeg",
+  { id:4008, filtro:"you", linea:"You", nombre:"You Cápsula Blanco Beige", modelo:"You Cápsula", color:"Blanco Beige", colores:["#FFFFFF", "#D8C3A2"], precio:69.90, tallas:[35, 40], agotadas:["35","36"], estado:"disponible", foto:"fotos/you-cápsula-blanco-beige.jpeg",
     descripcion:"Blanco con detalles en beige, malla y paneles superpuestos, con cordones gruesos y cápsula de aire visible en el talón. Un par neutro con un toque cálido." },
-  { id:4009, filtro:"you", linea:"You", nombre:"You Urbano Marco Gris Azul", precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-marco-gris-azul.jpeg",
+  { id:4009, filtro:"you", linea:"You", nombre:"You Urbano Marco Gris Azul", modelo:"You Urbano Marco", color:"Gris Azul", colores:["#8E9DB0"], precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-marco-gris-azul.jpeg",
     descripcion:"Blanco con detalles en gris azul, malla enmarcada por paneles lisos, cordones gruesos y plataforma alta con borde lila. Un par suave y fácil de combinar." },
-  { id:4010, filtro:"you", linea:"You", nombre:"You Urbano Marco Beige", precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-marco-beige.jpeg",
+  { id:4010, filtro:"you", linea:"You", nombre:"You Urbano Marco Beige", modelo:"You Urbano Marco", color:"Beige", colores:["#D8C3A2"], precio:69.90, tallas:[35, 40], agotadas:["35","36","37"], estado:"disponible", foto:"fotos/you-urbano-marco-beige.jpeg",
     descripcion:"Blanco con tonos beige, malla enmarcada por paneles lisos y plataforma alta con borde gris en la suela. Un par neutro, limpio y sencillo de llevar." },
-  { id:4011, filtro:"you", linea:"You", nombre:"You Chunky Relieve Blanco Rosa", precio:69.90, tallas:[35, 40], agotadas:["35","36"], estado:"disponible", foto:"fotos/you-chunky-relieve-blanco-rosa.jpeg",
+  { id:4011, filtro:"you", linea:"You", nombre:"You Chunky Relieve Blanco Rosa", modelo:"You Chunky Relieve", color:"Blanco Rosa", colores:["#FFFFFF", "#F2B8C6"], precio:69.90, tallas:[35, 40], agotadas:["35","36"], estado:"disponible", foto:"fotos/you-chunky-relieve-blanco-rosa.jpeg",
     descripcion:"Crema con paneles en rosa viejo, malla y líneas curvas superpuestas, con cordones gruesos y suela chunky con relieve. Un par delicado y con volumen." },
-  { id:4012, filtro:"you", linea:"You", nombre:"You Chunky Relieve Blanco Gris", precio:69.90, tallas:[35, 40], agotadas:["35"], estado:"disponible", foto:"fotos/you-chunky-relieve-blanco-gris.jpeg",
+  { id:4012, filtro:"you", linea:"You", nombre:"You Chunky Relieve Blanco Gris", modelo:"You Chunky Relieve", color:"Blanco Gris", colores:["#FFFFFF", "#9A9A9A"], precio:69.90, tallas:[35, 40], agotadas:["35"], estado:"disponible", foto:"fotos/you-chunky-relieve-blanco-gris.jpeg",
     descripcion:"Crema con paneles en gris, malla y contornos cosidos en capas, con cordones gruesos y suela alta con relieve. Un par neutro con volumen, fácil de combinar." },
-  { id:5001, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Horizon Marrón Crema", precio:99.90, tallas:[38, 43], estado:"disponible", foto:"fotos/i-run-horizon-marrón-crema.jpeg",
+  { id:5001, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Horizon Marrón Crema", modelo:"I-RUN Horizon", color:"Marrón Crema", colores:["#8B5A3C", "#EFE3C8"], precio:99.90, tallas:[38, 43], estado:"disponible", foto:"fotos/i-run-horizon-marrón-crema.jpeg",
     descripcion:"Marrón y crema en malla y mesh, con suela gruesa tipo trail y logo lateral. Un par robusto, ideal para uso outdoor." },
-  { id:5002, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Horizon Negro Gris", precio:99.90, tallas:[35, 38], estado:"disponible", foto:"fotos/i-run-horizon-negro-gris.jpeg",
+  { id:5002, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Horizon Negro Gris", modelo:"I-RUN Horizon", color:"Negro Gris", colores:["#1A1A1A", "#9A9A9A"], precio:99.90, tallas:[35, 38], estado:"disponible", foto:"fotos/i-run-horizon-negro-gris.jpeg",
     descripcion:"Gris y negro en mesh técnico, con suela alta tipo trail y agujetas reflectantes. Un par resistente, pensado para terreno irregular." },
-  { id:5003, filtro:"irun", linea:"I-RUN", nombre:"I-RUN STEP Gris Luna", precio:99.90, tallas:[38, 43], estado:"disponible", foto:"fotos/i-run-step-gris-luna.jpeg",
+  { id:5003, filtro:"irun", linea:"I-RUN", nombre:"I-RUN STEP Gris Luna", modelo:"I-RUN STEP", color:"Gris Luna", colores:["#C9C9C4"], precio:99.90, tallas:[38, 43], estado:"disponible", foto:"fotos/i-run-step-gris-luna.jpeg",
     descripcion:"Beige claro con paneles de cuero y malla, suela gum y contraste verde petróleo en el talón. Un par cómodo y fácil de combinar." },
-  { id:5004, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Bostep Majesty Blanco", precio:99.90, tallas:[36, 39], estado:"disponible", foto:"fotos/i-run-bostep-majesty-blanco.jpeg",
+  { id:5004, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Bostep Majesty Blanco", modelo:"I-RUN Bostep Majesty", color:"Blanco", colores:["#FFFFFF"], precio:99.90, tallas:[36, 39], estado:"disponible", foto:"fotos/i-run-bostep-majesty-blanco.jpeg",
     descripcion:"Blanco total en cuero con logo B lateral, talón rosa y suela con flechas en relieve. Un modelo limpio y sobrio para uso diario." },
-  { id:5005, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Urbanas Cloud Blanco Morado", precio:99.90, tallas:[35, 38], estado:"disponible", foto:"fotos/i-run-urbanas-cloud-blanco-morado.jpeg",
+  { id:5005, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Urbanas Cloud Blanco Morado", modelo:"I-RUN Urbanas Cloud", color:"Blanco Morado", colores:["#FFFFFF", "#A58BD0"], precio:99.90, tallas:[35, 38], estado:"disponible", foto:"fotos/i-run-urbanas-cloud-blanco-morado.jpeg",
     descripcion:"Blanco total en cuero liso con detalles lila en el talón y agujetas. Un par urbano, minimalista y fácil de combinar." },
-  { id:5006, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Bostep RAVENX Crema Gris", precio:99.90, tallas:[40, 44], estado:"disponible", foto:"fotos/i-run-bostep-ravenx-crema-gris.jpeg",
+  { id:5006, filtro:"irun", linea:"I-RUN", nombre:"I-RUN Bostep RAVENX Crema Gris", modelo:"I-RUN Bostep RAVENX", color:"Crema Gris", colores:["#EFE3C8", "#9A9A9A"], precio:99.90, tallas:[40, 44], estado:"disponible", foto:"fotos/i-run-bostep-ravenx-crema-gris.jpeg",
     descripcion:"Crema y gris en cuero, con suela plataforma bicolor y logo B lateral. Un par sobrio, versátil para el día a día." },
 ];
 
@@ -737,9 +746,15 @@ const PRODUCTOS = [
   const modal = $("#modal");
   let productoAbierto = null;
 
-  function abrirProducto(id) {
+  const fondoColor = (v) => {
+    const c = v.colores && v.colores.length ? v.colores : ["#E6E6E6"];
+    return c.length === 1 ? c[0] : `linear-gradient(135deg, ${c[0]} 50%, ${c[1]} 50%)`;
+  };
+
+  function abrirProducto(id, opciones = {}) {
     const p = porId.get(Number(id));
     if (!p) return;
+    const scrollPrevio = modal.scrollTop;
     productoAbierto = p;
     $("#m-media").innerHTML = p.foto
       ? `<img src="${esc(p.foto)}" width="576" height="720" alt="${esc(p.nombre)}">`
@@ -748,12 +763,22 @@ const PRODUCTOS = [
     const puedeAgregar = p.estado === "disponible";
     const nota = p.estado === "agotado" ? '<p class="m-nota">Agotado por ahora.</p>'
       : p.estado === "proximamente" ? '<p class="m-nota">Este modelo llega pronto.</p>' : "";
+
+    const variantes = p.modelo ? PRODUCTOS.filter((v) => v.modelo === p.modelo) : [p];
+    const bloqueColor = !p.color ? "" : `
+      <div class="m-opcion">
+        <p class="m-etq" id="m-color-t">Color: ${esc(p.color)}</p>
+        <div class="m-colores" role="radiogroup" aria-labelledby="m-color-t">
+          ${variantes.map((v) => `<button type="button" class="m-color" role="radio" aria-checked="${v.id === p.id}" data-variante="${v.id}" aria-label="${esc(v.color || v.nombre)}" title="${esc(v.color || v.nombre)}"><span style="background:${fondoColor(v)}"></span></button>`).join("")}
+        </div>
+      </div>`;
+
     const agotadas = (p.agotadas || []).map(String);
     const tallas = tallasDe(p);
     const unica = tallas.length === 1 && tallas[0] === "Único";
     const bloqueTallas = !puedeAgregar ? "" : `
-      <div class="m-tallas">
-        <h3 id="m-tallas-t">Elige tu talla</h3>
+      <div class="m-opcion m-tallas">
+        <p class="m-etq" id="m-tallas-t">Talla<span id="m-talla-elegida">${unica ? ": Única" : ""}</span></p>
         <div class="m-tallas-grid" role="radiogroup" aria-labelledby="m-tallas-t">
           ${tallas.map((t) => {
             const sinStock = agotadas.includes(t);
@@ -766,35 +791,50 @@ const PRODUCTOS = [
       : unica ? "Añadir al carrito" : "Selecciona una talla";
     $("#m-cuerpo").innerHTML = `
       <h2 class="m-nombre" id="m-nombre">${esc(p.nombre)}</h2>
-      <p class="m-desc">${esc(p.descripcion)}</p>
       ${nota}
+      ${bloqueColor}
       ${bloqueTallas}
       <div class="m-acciones">
         <button class="btn btn-solid btn-ancho" type="button" id="m-agregar"${puedeAgregar && unica ? "" : " disabled"}>${textoBoton}</button>
       </div>`;
 
+    // al cambiar de color se mantiene la talla elegida si existe y hay stock en el nuevo color
+    if (opciones.talla) {
+      const b = $$("#m-cuerpo .m-talla").find((x) => x.dataset.talla === opciones.talla && !x.disabled);
+      if (b) elegirTalla(b);
+    }
     if (!modal.open) modal.showModal();
-    modal.scrollTop = 0;
+    modal.scrollTop = opciones.mantenerScroll ? scrollPrevio : 0;
     document.documentElement.classList.add("bloqueado");
     history.replaceState(null, "", "#p" + p.id);
   }
 
+  function elegirTalla(boton) {
+    $$("#m-cuerpo .m-talla").forEach((b) => b.setAttribute("aria-checked", String(b === boton)));
+    const t = boton.dataset.talla;
+    $("#m-talla-elegida").textContent = ": " + (t === "Único" ? "Única" : t);
+    const agregarBtn = $("#m-agregar");
+    agregarBtn.disabled = false;
+    agregarBtn.textContent = t === "Único" ? "Añadir al carrito" : `Añadir talla ${t} al carrito`;
+  }
+
   modal.addEventListener("click", (e) => {
-    if (e.target === modal || e.target.closest("[data-cerrar]")) modal.close();
-    const talla = e.target.closest(".m-talla");
-    if (talla && !talla.disabled) {
-      $$("#m-cuerpo .m-talla").forEach((b) => b.setAttribute("aria-checked", String(b === talla)));
-      const boton = $("#m-agregar");
-      boton.disabled = false;
-      boton.textContent = talla.dataset.talla === "Único" ? "Añadir al carrito" : `Añadir talla ${talla.dataset.talla} al carrito`;
+    if (e.target === modal || e.target.closest("[data-cerrar]")) { modal.close(); return; }
+    const color = e.target.closest(".m-color");
+    if (color) {
+      if (Number(color.dataset.variante) !== productoAbierto.id) {
+        const elegida = $("#m-cuerpo .m-talla[aria-checked=\"true\"]");
+        abrirProducto(color.dataset.variante, { talla: elegida ? elegida.dataset.talla : null, mantenerScroll: true });
+      }
       return;
     }
+    const talla = e.target.closest(".m-talla");
+    if (talla && !talla.disabled) { elegirTalla(talla); return; }
     const boton = e.target.closest("#m-agregar");
     if (boton && !boton.disabled && productoAbierto) {
       const elegida = $("#m-cuerpo .m-talla[aria-checked=\"true\"]");
       if (!elegida) return;
-      const p = productoAbierto;
-      agregar(p.id, elegida.dataset.talla);
+      agregar(productoAbierto.id, elegida.dataset.talla);
       modal.close();
       abrirCarrito();
     }
