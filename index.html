@@ -183,10 +183,16 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .modal-cuerpo{padding:48px 32px 0;display:flex;flex-direction:column;gap:22px;min-width:0;align-self:stretch}
 .m-nombre{font-size:clamp(1.6rem,3vw,2.1rem);padding-right:36px}
 .m-marca{margin-top:-14px;font-size:.875rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--gris)}
-.m-desc{color:var(--gris);line-height:1.65;max-width:48ch}
+.m-desc{color:var(--gris);line-height:1.65;max-width:48ch;padding-bottom:20px}
+.m-opciones{display:flex;flex-direction:column;gap:22px}
 .m-nota{font-size:.875rem;padding:10px 12px;background:var(--piedra);border-radius:var(--radio)}
-.m-acciones{position:sticky;bottom:0;z-index:2;margin:auto -32px 0;padding:14px 32px 20px;background:#fff;border-top:1px solid var(--linea);display:flex;flex-direction:column;gap:10px}
-.m-acciones .btn{min-height:52px}
+.m-acciones{position:sticky;bottom:0;z-index:2;margin:auto -32px 0;padding:14px 32px 20px;background:#fff;border-top:1px solid var(--linea);display:flex;gap:8px}
+.m-acciones .btn{flex:1;min-width:0;min-height:52px;padding:0 12px;white-space:nowrap}
+.m-sel{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 12px;border:1px solid #bdbdbd;border-radius:var(--radio);background:#fff;font-size:.9375rem;font-weight:500;white-space:nowrap}
+.m-sel:hover{border-color:var(--tinta)}
+.m-sel svg{width:16px;height:16px;flex:none}
+@media (min-width:721px){.m-sel{display:none}}
+@media (max-width:385px){.m-al-carrito{display:none}}
 .cerrar{position:sticky;top:12px;z-index:3;width:40px;height:40px;margin:12px 12px -52px auto;display:grid;place-items:center;background:#fff;border:0;border-radius:999px;font-size:1.2rem;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .cerrar:hover{background:var(--piedra)}
 /* Opciones de la ficha: color y talla (estilo etiqueta + cuadritos) */
@@ -789,23 +795,29 @@ const PRODUCTOS = [
           }).join("")}
         </div>
       </div>`;
-    const textoBoton = !puedeAgregar ? (p.estado === "agotado" ? "Agotado" : "Próximamente")
-      : unica ? textoAgregar(p) : "Selecciona una talla";
+    const textoBoton = !puedeAgregar ? (p.estado === "agotado" ? "Agotado" : "Próximamente") : "Añadir al carrito";
+    const bloqueOpciones = (bloqueColor || bloqueTallas) ? `<div class="m-opciones" id="m-opciones">${bloqueColor}${bloqueTallas}</div>` : "";
+    const selector = !puedeAgregar ? "" : `
+        <button class="m-sel" type="button" id="m-sel" aria-controls="m-opciones" aria-label="Cambiar talla">
+          <span id="m-sel-txt">Talla</span>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l5 5 5-5"/></svg>
+        </button>`;
     $("#m-cuerpo").innerHTML = `
       <h2 class="m-nombre" id="m-nombre">${esc(p.nombre)}</h2>
       <p class="m-marca">${esc(p.linea)}</p>
-      <p class="m-desc">${esc(p.descripcion)}</p>
       ${nota}
-      ${bloqueColor}
-      ${bloqueTallas}
-      <div class="m-acciones">
-        <button class="btn btn-solid btn-ancho" type="button" id="m-agregar"${puedeAgregar && unica ? "" : " disabled"}>${textoBoton}</button>
+      ${bloqueOpciones}
+      <p class="m-desc">${esc(p.descripcion)}</p>
+      <div class="m-acciones">${selector}
+        <button class="btn btn-solid" type="button" id="m-agregar" disabled>${textoBoton}</button>
       </div>`;
 
-    // al cambiar de color se mantiene la talla elegida si existe y hay stock en el nuevo color
-    if (opciones.talla) {
-      const b = $$("#m-cuerpo .m-talla").find((x) => x.dataset.talla === opciones.talla && !x.disabled);
-      if (b) elegirTalla(b);
+    // Talla preseleccionada: la menor con stock del modelo (o la que ya estaba elegida al cambiar de color)
+    if (puedeAgregar) {
+      const libres = $$("#m-cuerpo .m-talla").filter((b) => !b.disabled);
+      const inicial = (opciones.talla && libres.find((b) => b.dataset.talla === opciones.talla)) || libres[0];
+      if (inicial) elegirTalla(inicial);
+      else { $("#m-agregar").textContent = "Sin stock"; $("#m-sel").hidden = true; }
     }
     if (!modal.open) modal.showModal();
     modal.scrollTop = opciones.mantenerScroll ? scrollPrevio : 0;
@@ -813,21 +825,38 @@ const PRODUCTOS = [
     history.replaceState(null, "", "#p" + p.id);
   }
 
+  // Texto del botón (solo texto fijo + precio): "Añadir al carrito - S/ 69.90"
   function textoAgregar(p) {
-    return consultar(p) ? "Añadir al carrito" : "Añadir al carrito - " + soles(p.precio);
+    return consultar(p) ? "Añadir al carrito" : `<span>Añadir<span class="m-al-carrito"> al carrito</span> - ${soles(p.precio)}</span>`;
   }
 
   function elegirTalla(boton) {
     $$("#m-cuerpo .m-talla").forEach((b) => b.setAttribute("aria-checked", String(b === boton)));
     const t = boton.dataset.talla;
     $("#m-talla-elegida").textContent = ": " + (t === "Único" ? "Única" : t);
+    const sel = $("#m-sel-txt");
+    if (sel) sel.textContent = t === "Único" ? "Talla única" : "Talla " + t;
     const agregarBtn = $("#m-agregar");
     agregarBtn.disabled = false;
-    agregarBtn.textContent = textoAgregar(productoAbierto);
+    agregarBtn.innerHTML = textoAgregar(productoAbierto);
+  }
+
+  // Al tocar la talla de la barra: baja sola hasta dejar colores y tallas en el centro, con un poco de la descripción debajo
+  function irAOpciones() {
+    const bloque = $("#m-opciones"), barra = $("#m-cuerpo .m-acciones");
+    if (!bloque || !barra) return;
+    const caja = modal.getBoundingClientRect(), b = bloque.getBoundingClientRect();
+    const altoVisible = barra.getBoundingClientRect().top - caja.top;
+    const mover = (b.top - caja.top) + b.height / 2 - altoVisible / 2;
+    const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    modal.scrollBy({ top: Math.max(mover, 0), behavior: sinMovimiento ? "auto" : "smooth" });
+    const elegida = $("#m-cuerpo .m-talla[aria-checked=\"true\"]");
+    if (elegida) elegida.focus({ preventScroll: true });
   }
 
   modal.addEventListener("click", (e) => {
     if (e.target === modal || e.target.closest("[data-cerrar]")) { modal.close(); return; }
+    if (e.target.closest("#m-sel")) { irAOpciones(); return; }
     const color = e.target.closest(".m-color");
     if (color) {
       if (Number(color.dataset.variante) !== productoAbierto.id) {
