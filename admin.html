@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000000">
+<title>ZAZI — Admin</title>
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ZAZI — panel para editar el catálogo
+   Guarda los cambios en GitHub (productos.json y fotos/).
+   ============================================================ */
+:root{
+  --tinta:#000;--papel:#fff;--piedra:#F4F4F4;--linea:#E6E6E6;--gris:#767676;
+  --fucsia:#C11A61;--alerta:#B3261E;--r:6px;
+  --f-titulo:"Oswald","Arial Narrow",Arial,sans-serif;
+  --f-texto:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--papel);color:var(--tinta);font:400 16px/1.45 var(--f-texto);-webkit-font-smoothing:antialiased;padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+img{display:block;max-width:100%}
+h1,h2,p{margin:0}
+[hidden]{display:none !important}
+:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+h1,h2{font-family:var(--f-titulo);font-weight:600;text-transform:uppercase;letter-spacing:.02em;line-height:1.05}
+h1{font-size:2rem}
+
+/* Cabecera */
+.cab{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--linea);padding-top:env(safe-area-inset-top,0px)}
+.cab-in{max-width:760px;margin:0 auto;height:56px;padding:0 16px;display:flex;align-items:center;gap:12px}
+.cab-in img{height:22px;width:auto}
+.cab-t{font-family:var(--f-titulo);font-size:1.05rem;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--gris)}
+.cab-acc{margin-left:auto;display:flex;align-items:center;gap:4px}
+.lnk{background:none;border:0;padding:8px;font-size:.9375rem;font-weight:500;color:var(--tinta);text-decoration:underline;text-underline-offset:3px}
+main{max-width:760px;margin:0 auto;padding:16px}
+
+/* Controles */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border:1px solid var(--tinta);border-radius:var(--r);background:#fff;font-weight:600;font-size:.9375rem;text-decoration:none;color:var(--tinta)}
+.btn-negro{background:var(--tinta);color:#fff}
+.btn-peligro{border-color:var(--alerta);color:var(--alerta)}
+.btn-ancho{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.input{width:100%;min-height:48px;padding:10px 12px;border:1px solid #cfcfcf;border-radius:var(--r);background:#fff;font-size:16px}
+.input:focus{outline:none;border-color:var(--tinta);box-shadow:0 0 0 1px var(--tinta)}
+textarea.input{min-height:110px;resize:vertical;line-height:1.5}
+.campo{display:flex;flex-direction:column;gap:6px;font-size:.875rem;font-weight:600;min-width:0;border:0;padding:0;margin:0}
+.campo legend{padding:0;margin-bottom:6px}
+.campo small{font-weight:400;color:var(--gris);font-size:.8125rem}
+.check{display:flex;align-items:center;gap:10px;font-size:.9375rem;font-weight:500;min-height:44px}
+.check input{width:20px;height:20px;accent-color:#000;flex:none}
+.nota{font-size:.875rem;color:var(--gris)}
+.error{color:var(--alerta);font-size:.9375rem;font-weight:500}
+
+/* Acceso */
+.acceso{max-width:480px;margin:24px auto;display:flex;flex-direction:column;gap:18px}
+.acceso ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;color:#333;font-size:.9375rem}
+.acceso a{color:var(--tinta)}
+
+/* Lista de productos */
+.herr{display:flex;flex-direction:column;gap:12px;margin-bottom:8px}
+.herr-fila{display:flex;gap:10px}
+.herr-fila .input{flex:1}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chip{flex:none;min-height:38px;padding:0 16px;border:0;border-radius:999px;background:var(--piedra);font-size:.875rem;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--tinta);color:#fff}
+.ayuda{font-size:.8125rem;color:var(--gris);margin:4px 0 0}
+.fila{position:relative;display:flex;flex-direction:column;gap:10px;padding:14px 0;border-bottom:1px solid var(--linea)}
+.fila.cambiada::before{content:"";position:absolute;left:-10px;top:14px;bottom:14px;width:3px;border-radius:2px;background:var(--fucsia)}
+.fila-abrir{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;width:100%;padding:0;background:none;border:0;text-align:left}
+.fila-foto{width:64px;height:80px;border-radius:4px;background:var(--piedra);overflow:hidden}
+.fila-foto img{width:100%;height:100%;object-fit:cover}
+.fila-nombre{display:block;font-weight:600;line-height:1.3}
+.fila-datos{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:3px;font-size:.875rem;color:var(--gris)}
+.fila-editar{font-size:.875rem;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+.estado-agotado{color:var(--alerta);font-weight:600}
+.estado-proximamente{color:#8A5A00;font-weight:600}
+.en-vitrina{color:var(--fucsia);font-weight:600}
+.tallas{display:flex;flex-wrap:wrap;gap:6px}
+.fila .tallas{padding-left:78px}
+.talla{min-width:46px;min-height:42px;padding:0 8px;border:1px solid #cfcfcf;border-radius:4px;background:#fff;font-size:.9375rem;font-weight:500;font-variant-numeric:tabular-nums}
+.talla[aria-pressed="true"]{background:var(--piedra);border-color:var(--piedra);color:#8f8f8f;text-decoration:line-through}
+.vacio{padding:40px 0;text-align:center;color:var(--gris)}
+
+/* Barra para publicar */
+.barra{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--tinta);color:#fff;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.barra-in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.barra-txt{flex:1;display:flex;align-items:center;gap:10px;font-weight:500;font-size:.9375rem;line-height:1.3}
+.punto{flex:none;width:9px;height:9px;border-radius:50%;background:var(--fucsia);box-shadow:0 0 0 2px #fff}
+.barra .btn{min-height:44px;padding:0 16px}
+.btn-blanco{background:#fff;color:var(--tinta);border-color:#fff}
+.btn-borde{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+
+/* Editor */
+dialog{padding:0;border:0;background:#fff;color:var(--tinta);max-width:none;max-height:none}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+#editor{position:fixed;inset:0;width:100%;height:100%;margin:0}
+.ed{display:flex;flex-direction:column;height:100%}
+.ed-cab{display:flex;align-items:center;gap:12px;padding:12px 8px 12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));border-bottom:1px solid var(--linea)}
+.ed-cab h2{flex:1;font-size:1.35rem}
+.ed-cuerpo{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:18px;overscroll-behavior:contain}
+.ed-pie{display:flex;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--linea)}
+.ed-pie .btn{flex:1}
+.foto-ed{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center}
+.marco{width:112px;aspect-ratio:4/5;border-radius:4px;background:var(--piedra);overflow:hidden;display:grid;place-items:center;color:var(--gris);font-size:.8125rem;text-align:center}
+.marco img{width:100%;height:100%;object-fit:cover}
+.foto-acc{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.colores{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.colores input[type=color]{width:52px;height:44px;padding:2px;border:1px solid #cfcfcf;border-radius:var(--r);background:#fff}
+.muestra{width:44px;height:44px;border:1px solid var(--linea)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--tinta);border-radius:var(--r);overflow:hidden}
+.seg label{position:relative;display:block}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 4px;border-left:1px solid var(--tinta);font-size:.875rem;font-weight:600;text-align:center}
+.seg label:first-child span{border-left:0}
+.seg input:checked+span{background:var(--tinta);color:#fff}
+.seg input:focus-visible+span{outline:2px solid var(--fucsia);outline-offset:-4px}
+.mas-acc{display:flex;flex-direction:column;gap:10px;padding-top:18px;border-top:1px solid var(--linea)}
+
+/* Aviso */
+#aviso{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:100;width:max-content;max-width:calc(100vw - 32px);padding:12px 16px;border-radius:8px;background:var(--tinta);color:#fff;font-weight:500;font-size:.9375rem;box-shadow:0 6px 18px rgba(0,0,0,.22)}
+#aviso.malo{background:var(--alerta)}
+
+@media (min-width:700px){
+  #editor{inset:0;width:min(640px,calc(100vw - 32px));height:fit-content;max-height:92dvh;margin:auto;border-radius:12px}
+  .ed{max-height:92dvh}
+  .ed-cab{padding-top:12px}
+}
+@media (prefers-reduced-motion:no-preference){
+  #editor[open]{animation:subir .2s ease-out}
+  @keyframes subir{from{transform:translateY(14px);opacity:0}}
+}
+</style>
+</head>
+<body>
+
+<header class="cab">
+  <div class="cab-in">
+    <img src="img/logo-zazi.png" alt="ZAZI" width="66" height="22">
+    <span class="cab-t">Admin</span>
+    <div class="cab-acc">
+      <a class="lnk" href="./" target="_blank" rel="noopener">Ver tienda</a>
+      <button class="lnk" type="button" id="salir" hidden>Salir</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="acceso" id="acceso" hidden>
+    <h1>Acceso</h1>
+    <p>Para editar el catálogo, este dispositivo necesita un token de GitHub. Se guarda solo aquí.</p>
+    <ol>
+      <li>Abre <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>.</li>
+      <li>Nombre: ZAZI admin. Elige una fecha de vencimiento.</li>
+      <li>En Repository access, elige Only select repositories y marca Zazi-pe/Zazi.</li>
+      <li>En Permissions, busca Contents y elige Read and write.</li>
+      <li>Toca Generate token, cópialo y pégalo aquí.</li>
+    </ol>
+    <form id="form-acceso" class="campo">
+      <label class="campo" for="token">Token de GitHub</label>
+      <input class="input" id="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…">
+      <p class="error" id="acceso-error" role="alert" hidden></p>
+      <button class="btn btn-negro btn-ancho" type="submit" id="entrar">Entrar</button>
+    </form>
+  </section>
+
+  <p class="vacio" id="cargando">Cargando catálogo…</p>
+
+  <section id="panel" hidden>
+    <div class="herr">
+      <div class="herr-fila">
+        <label class="sr" for="buscar">Buscar producto</label>
+        <input class="input" id="buscar" type="search" placeholder="Buscar producto" autocomplete="off">
+        <button class="btn btn-negro" type="button" id="nuevo">Nuevo</button>
+      </div>
+      <div class="chips" id="filtros" role="group" aria-label="Filtrar por línea"></div>
+      <p class="ayuda">Toca una talla para marcarla agotada. Toca el producto para editarlo.</p>
+    </div>
+    <div id="lista"></div>
+  </section>
+</main>
+
+<div class="barra" id="barra" hidden>
+  <div class="barra-in">
+    <p class="barra-txt"><span class="punto" aria-hidden="true"></span><span id="barra-txt"></span></p>
+    <button class="btn btn-borde" type="button" id="descartar">Descartar</button>
+    <button class="btn btn-blanco" type="button" id="publicar">Publicar</button>
+  </div>
+</div>
+
+<dialog id="editor" aria-labelledby="ed-titulo">
+  <form class="ed" id="ed-form" novalidate>
+    <div class="ed-cab">
+      <h2 id="ed-titulo">Editar producto</h2>
+      <button class="lnk" type="button" data-cerrar>Cerrar</button>
+    </div>
+    <div class="ed-cuerpo">
+      <div class="foto-ed">
+        <div class="marco" id="ed-marco"></div>
+        <div class="foto-acc">
+          <label class="btn" for="ed-archivo">Elegir foto</label>
+          <input class="sr" id="ed-archivo" type="file" accept="image/*">
+          <button class="lnk" type="button" id="ed-quitar-foto">Quitar foto</button>
+          <p class="nota">Se recorta al centro en formato 4:5, como en la tienda.</p>
+        </div>
+      </div>
+
+      <label class="campo">Línea
+        <select class="input" id="ed-linea"></select>
+      </label>
+      <label class="campo" id="ed-nueva-c" hidden>Nombre de la nueva línea
+        <input class="input" id="ed-nueva" autocomplete="off" placeholder="Ej. Kiara">
+      </label>
+
+      <div class="dos">
+        <label class="campo">Modelo
+          <input class="input" id="ed-modelo" autocomplete="off" placeholder="Ej. Anda 260X">
+        </label>
+        <label class="campo">Color
+          <input class="input" id="ed-color" autocomplete="off" placeholder="Ej. Rosa">
+        </label>
+      </div>
+      <label class="campo">Nombre en la tienda
+        <input class="input" id="ed-nombre" autocomplete="off">
+        <small>Se arma solo con el modelo y el color. Puedes cambiarlo.</small>
+      </label>
+
+      <div class="campo">
+        <span>Color del cuadrito</span>
+        <div class="colores">
+          <input type="color" id="ed-c1" aria-label="Color principal">
+          <input type="color" id="ed-c2" aria-label="Segundo color">
+          <span class="muestra" id="ed-muestra" aria-hidden="true"></span>
+          <label class="check"><input type="checkbox" id="ed-dos"> Dos tonos</label>
+        </div>
+      </div>
+
+      <div class="dos">
+        <label class="campo">Precio (S/)
+          <input class="input" id="ed-precio" type="number" inputmode="decimal" step="0.01" min="0">
+        </label>
+        <label class="check" style="align-self:end"><input type="checkbox" id="ed-sin-precio"> Por confirmar</label>
+      </div>
+
+      <div class="campo">
+        <span>Tallas</span>
+        <div class="dos" id="ed-rango">
+          <label class="campo">Desde<input class="input" id="ed-desde" type="number" inputmode="numeric"></label>
+          <label class="campo">Hasta<input class="input" id="ed-hasta" type="number" inputmode="numeric"></label>
+        </div>
+        <label class="check"><input type="checkbox" id="ed-unica"> Talla única</label>
+      </div>
+
+      <div class="campo" id="ed-agotadas-c">
+        <span>Tallas agotadas</span>
+        <small>Toca una talla para marcarla agotada.</small>
+        <div class="tallas" id="ed-agotadas"></div>
+      </div>
+
+      <fieldset class="campo">
+        <legend>Estado</legend>
+        <div class="seg">
+          <label><input type="radio" name="ed-estado" value="disponible"><span>Disponible</span></label>
+          <label><input type="radio" name="ed-estado" value="agotado"><span>Agotado</span></label>
+          <label><input type="radio" name="ed-estado" value="proximamente"><span>Próximamente</span></label>
+        </div>
+      </fieldset>
+
+      <label class="campo">Descripción
+        <textarea class="input" id="ed-desc"></textarea>
+      </label>
+
+      <label class="campo">Código Bsale (SKU)
+        <input class="input" id="ed-sku" autocomplete="off" autocapitalize="characters">
+        <small>Opcional. Servirá para conectar con Bsale más adelante.</small>
+      </label>
+
+      <label class="check"><input type="checkbox" id="ed-vitrina"> Mostrar en la vitrina de la portada</label>
+
+      <p class="error" id="ed-error" role="alert" hidden></p>
+
+      <div class="mas-acc" id="ed-mas">
+        <button class="btn" type="button" id="ed-otro-color">Añadir otro color de este modelo</button>
+        <button class="btn btn-peligro" type="button" id="ed-eliminar">Eliminar producto</button>
+      </div>
+    </div>
+    <div class="ed-pie">
+      <button class="btn" type="button" data-cerrar>Cancelar</button>
+      <button class="btn btn-negro" type="submit">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="aviso" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const REPO = "Zazi-pe/Zazi";
+  const RAMA = "main";
+  const CLAVE_TOKEN = "zazi-admin-token";
+  const ORDEN = ["id", "sku", "filtro", "linea", "nombre", "modelo", "color", "colores", "precio", "tallas", "agotadas", "estado", "foto", "descripcion"];
+  const ESTADOS = { disponible: "Disponible", agotado: "Agotado", proximamente: "Próximamente" };
+
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const norm = (t) => String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const slug = (t) => norm(t).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const soles = (n) => "S/ " + Number(n).toFixed(2);
+
+  /* ---------- Estado ---------- */
+  const st = {
+    original: "", orig: null, datos: null, jsonSha: "",
+    fotos: new Set(),       // rutas que existen en fotos/ del repo
+    subidas: new Map(),     // ruta -> foto nueva en base64, aún sin publicar
+    vistas: new Map(),      // ruta -> vista previa local de fotos nuevas
+    filtro: "all", busqueda: "", publicando: false
+  };
+  let token = "";
+  try { token = localStorage.getItem(CLAVE_TOKEN) || ""; } catch (e) { /* sin almacenamiento */ }
+
+  /* ---------- GitHub ---------- */
+  async function api(ruta, opciones = {}) {
+    const cab = { "Accept": "application/vnd.github+json", "Authorization": "Bearer " + token, "X-GitHub-Api-Version": "2022-11-28" };
+    if (opciones.body) cab["Content-Type"] = "application/json";
+    const r = await fetch("https://api.github.com/repos/" + REPO + ruta, { ...opciones, headers: cab, cache: "no-store" });
+    if (!r.ok) {
+      const e = new Error("GitHub " + r.status);
+      e.status = r.status;
+      try { e.detalle = (await r.json()).message; } catch (_) { /* sin detalle */ }
+      throw e;
+    }
+    return r.status === 204 ? null : r.json();
+  }
+  const deBase64 = (b) => new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g, "")), (c) => c.charCodeAt(0)));
+
+  function serializar(d) {
+    return "{\n" +
+      '  "vitrina": ' + JSON.stringify(d.vitrina) + ",\n" +
+      '  "filtros": ' + JSON.stringify(d.filtros) + ",\n" +
+      '  "productos": [\n' + d.productos.map((p) => "    " + JSON.stringify(p)).join(",\n") + "\n  ]\n}\n";
+  }
+
+  async function cargar(ref) {
+    const [archivo, carpeta] = await Promise.all([
+      api("/contents/productos.json?ref=" + ref),
+      api("/contents/fotos?ref=" + ref).catch((e) => (e.status === 404 ? [] : Promise.reject(e)))
+    ]);
+    st.original = deBase64(archivo.content);
+    st.jsonSha = archivo.sha;
+    st.orig = JSON.parse(st.original);
+    st.datos = JSON.parse(st.original);
+    st.fotos = new Set(carpeta.map((f) => f.path));
+    st.subidas.clear();
+  }
+
+  /* ---------- Utilidades de producto ---------- */
+  function ordenar(p) {
+    const o = {};
+    ORDEN.forEach((k) => { if (p[k] !== undefined) o[k] = p[k]; });
+    Object.keys(p).forEach((k) => { if (!(k in o) && p[k] !== undefined) o[k] = p[k]; });
+    return o;
+  }
+  function tallasDe(p) {
+    const t = p.tallas || [];
+    if (t.length === 2 && typeof t[0] === "number" && typeof t[1] === "number") {
+      const lista = [];
+      for (let n = t[0]; n <= t[1]; n++) lista.push(String(n));
+      return lista;
+    }
+    return t.map(String);
+  }
+  const porId = (id) => st.datos.productos.find((p) => p.id === id);
+  const srcFoto = (ruta) => st.vistas.get(ruta) || encodeURI(ruta);
+  // Si la tienda aún no termina de actualizarse, la foto se toma directo del repositorio
+  const RAW = "https://raw.githubusercontent.com/" + REPO + "/" + RAMA + "/";
+  const imgFoto = (ruta, alt) => `<img src="${esc(srcFoto(ruta))}" alt="${esc(alt)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(RAW + encodeURI(ruta))}'">`;
+  const reemplazar = (p) => {
+    const i = st.datos.productos.findIndex((x) => x.id === p.id);
+    if (i >= 0) st.datos.productos[i] = p; else st.datos.productos.push(p);
+    st.datos.productos.sort((a, b) => a.id - b.id);
+  };
+
+  // Cada línea usa un bloque de 1000 ids (Anda 3000, You 4000, I-RUN 5000…). Una línea nueva abre el bloque siguiente.
+  function nuevoId(filtro) {
+    const ps = st.datos.productos;
+    const deLinea = ps.filter((p) => p.filtro === filtro);
+    if (deLinea.length) {
+      const bloque = Math.floor(Math.max(...deLinea.map((p) => p.id)) / 1000);
+      return Math.max(...ps.filter((p) => Math.floor(p.id / 1000) === bloque).map((p) => p.id)) + 1;
+    }
+    const mayor = Math.max(2, ...ps.map((p) => Math.floor(p.id / 1000)));
+    return (mayor + 1) * 1000 + 1;
+  }
+
+  function nombreFoto(nombre) {
+    const usadas = new Set([...st.fotos, ...st.subidas.keys(), ...st.datos.productos.map((p) => p.foto)]);
+    const base = "fotos/" + (slug(nombre) || "producto");
+    let ruta = base + ".jpg", n = 2;
+    while (usadas.has(ruta)) ruta = base + "-" + n++ + ".jpg";
+    return ruta;
+  }
+
+  // Foto lista para la tienda: recorte 4:5 al centro, 800 × 1000 px, JPEG de unos 200 KB como máximo
+  async function procesarFoto(archivo) {
+    const url = URL.createObjectURL(archivo);
+    const img = await new Promise((ok, mal) => {
+      const i = new Image();
+      i.onload = () => ok(i);
+      i.onerror = () => mal(new Error("No se pudo leer la imagen."));
+      i.src = url;
+    });
+    URL.revokeObjectURL(url);
+    const W = 800, H = 1000;
+    let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+    if (sw / sh > W / H) { const nw = sh * W / H; sx = (sw - nw) / 2; sw = nw; }
+    else { const nh = sw * H / W; sy = (sh - nh) / 2; sh = nh; }
+    const lienzo = document.createElement("canvas");
+    lienzo.width = W; lienzo.height = H;
+    const g = lienzo.getContext("2d");
+    g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+    g.imageSmoothingQuality = "high";
+    g.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+    let blob;
+    for (const q of [0.85, 0.78, 0.7, 0.6]) {
+      blob = await new Promise((ok) => lienzo.toBlob(ok, "image/jpeg", q));
+      if (blob.size <= 220 * 1024) break;
+    }
+    const b64 = await new Promise((ok) => {
+      const lector = new FileReader();
+      lector.onload = () => ok(String(lector.result).split(",")[1]);
+      lector.readAsDataURL(blob);
+    });
+    return { b64, url: URL.createObjectURL(blob) };
+  }
+
+  /* ---------- Cambios pendientes ---------- */
+  function diferencias() {
+    const antes = new Map(st.orig.productos.map((p) => [p.id, p]));
+    const lineas = [], ids = new Set();
+    st.datos.productos.forEach((p) => {
+      const a = antes.get(p.id);
+      if (!a) { lineas.push("Nuevo: " + p.nombre); ids.add(p.id); }
+      else if (JSON.stringify(a) !== JSON.stringify(p)) { lineas.push("Editado: " + p.nombre); ids.add(p.id); }
+      antes.delete(p.id);
+    });
+    antes.forEach((a) => lineas.push("Eliminado: " + a.nombre));
+    if (st.orig.vitrina !== st.datos.vitrina) {
+      const v = porId(st.datos.vitrina);
+      lineas.push("Vitrina: " + (v ? v.nombre : "ninguna"));
+    }
+    if (!lineas.length && JSON.stringify(st.orig.filtros) !== JSON.stringify(st.datos.filtros)) lineas.push("Filtros actualizados");
+    return { lineas, ids };
+  }
+
+  /* ---------- Pantallas ---------- */
+  function mostrar(cual) {
+    $("#acceso").hidden = cual !== "acceso";
+    $("#cargando").hidden = cual !== "cargando";
+    $("#panel").hidden = cual !== "panel";
+    $("#salir").hidden = cual !== "panel";
+    if (cual !== "panel") $("#barra").hidden = true;
+  }
+
+  let temporizador;
+  function avisar(texto, malo) {
+    const el = $("#aviso");
+    el.textContent = texto;
+    el.classList.toggle("malo", !!malo);
+    el.hidden = false;
+    clearTimeout(temporizador);
+    temporizador = setTimeout(() => { el.hidden = true; }, malo ? 7000 : 3500);
+  }
+
+  function pintar() {
+    const d = st.datos;
+    const { lineas, ids } = diferencias();
+    const cuenta = (f) => d.productos.filter((p) => p.filtro === f).length;
+    const chips = [["all", "Todos"], ...d.filtros.filter(([f]) => cuenta(f))];
+    if (st.filtro !== "all" && !cuenta(st.filtro)) st.filtro = "all";
+    $("#filtros").innerHTML = chips.map(([f, n]) =>
+      `<button class="chip" type="button" data-filtro="${esc(f)}" aria-pressed="${f === st.filtro}">${esc(n)} ${f === "all" ? d.productos.length : cuenta(f)}</button>`).join("");
+
+    const q = norm(st.busqueda.trim());
+    const lista = d.productos
+      .filter((p) => (st.filtro === "all" || p.filtro === st.filtro) && (!q || norm(p.nombre + " " + p.linea).includes(q)))
+      .sort((a, b) => b.id - a.id);
+    $("#lista").innerHTML = lista.length ? lista.map((p) => fila(p, ids.has(p.id))).join("")
+      : `<p class="vacio">${d.productos.length ? "Ningún producto coincide con la búsqueda." : "Aún no hay productos. Toca Nuevo para añadir el primero."}</p>`;
+
+    const n = lineas.length;
+    $("#barra").hidden = !n;
+    $("#barra-txt").textContent = n === 1 ? "1 cambio sin publicar" : n + " cambios sin publicar";
+  }
+
+  function fila(p, cambiada) {
+    const agotadas = (p.agotadas || []).map(String);
+    const tallas = tallasDe(p);
+    const foto = p.foto ? imgFoto(p.foto, "") : "";
+    const datos = [
+      `<span>${p.precio == null ? "Precio por confirmar" : soles(p.precio)}</span>`,
+      `<span class="estado-${esc(p.estado)}">${esc(ESTADOS[p.estado] || p.estado)}</span>`,
+      st.datos.vitrina === p.id ? '<span class="en-vitrina">En vitrina</span>' : ""
+    ].join("");
+    const botones = tallas.length > 1 ? `<div class="tallas" role="group" aria-label="Tallas de ${esc(p.nombre)}">
+      ${tallas.map((t) => `<button class="talla" type="button" data-id="${p.id}" data-talla="${esc(t)}" aria-pressed="${agotadas.includes(t)}" aria-label="Talla ${esc(t)}${agotadas.includes(t) ? ", agotada" : ""}">${esc(t)}</button>`).join("")}
+    </div>` : "";
+    return `<article class="fila${cambiada ? " cambiada" : ""}">
+      <button class="fila-abrir" type="button" data-editar="${p.id}">
+        <span class="fila-foto">${foto}</span>
+        <span><span class="fila-nombre">${esc(p.nombre)}</span><span class="fila-datos">${datos}</span></span>
+        <span class="fila-editar">Editar</span>
+      </button>${botones}
+    </article>`;
+  }
+
+  function alternarTalla(p, talla) {
+    const set = new Set((p.agotadas || []).map(String));
+    if (set.has(talla)) set.delete(talla); else set.add(talla);
+    const agotadas = tallasDe(p).filter((t) => set.has(t));
+    reemplazar(ordenar({ ...p, agotadas: agotadas.length ? agotadas : undefined }));
+  }
+
+  /* ---------- Editor ---------- */
+  const editor = $("#editor");
+  const ed = { id: null, foto: null, colores: [], agotadas: new Set(), nombreAuto: "" };
+
+  const autoNombre = () => [$("#ed-modelo").value.trim(), $("#ed-color").value.trim()].filter(Boolean).join(" ");
+
+  function abrirEditor(p, titulo) {
+    const nuevo = !p.id;
+    ed.id = p.id || null;
+    ed.foto = p.foto || null;
+    ed.colores = (p.colores && p.colores.length ? p.colores : ["#E6E6E6"]).slice(0, 2);
+    ed.agotadas = new Set((p.agotadas || []).map(String));
+    $("#ed-titulo").textContent = titulo || (nuevo ? "Nuevo producto" : "Editar producto");
+
+    const filtros = st.datos.filtros;
+    $("#ed-linea").innerHTML = filtros.map(([f, n]) => `<option value="${esc(f)}">${esc(n)}</option>`).join("") +
+      '<option value="__nueva">Nueva línea…</option>';
+    $("#ed-linea").value = p.filtro && filtros.some(([f]) => f === p.filtro) ? p.filtro : (filtros.length ? (st.filtro !== "all" ? st.filtro : filtros[filtros.length - 1][0]) : "__nueva");
+    $("#ed-nueva").value = "";
+    $("#ed-nueva-c").hidden = $("#ed-linea").value !== "__nueva";
+
+    $("#ed-modelo").value = p.modelo || "";
+    $("#ed-color").value = p.color || "";
+    $("#ed-nombre").value = p.nombre || autoNombre();
+    ed.nombreAuto = autoNombre();
+
+    $("#ed-c1").value = aHex(ed.colores[0]);
+    $("#ed-c2").value = aHex(ed.colores[1] || "#FFFFFF");
+    $("#ed-dos").checked = ed.colores.length > 1;
+
+    $("#ed-sin-precio").checked = !nuevo && p.precio == null;
+    $("#ed-precio").value = p.precio != null ? p.precio : "";
+
+    const unica = tallasDe(p).length === 1 && tallasDe(p)[0] === "Único";
+    const numeros = tallasDe(p).map(Number).filter((n) => !isNaN(n));
+    $("#ed-unica").checked = unica;
+    $("#ed-desde").value = numeros.length ? Math.min(...numeros) : "";
+    $("#ed-hasta").value = numeros.length ? Math.max(...numeros) : "";
+
+    const estado = p.estado || "disponible";
+    $$("input[name=ed-estado]").forEach((r) => { r.checked = r.value === estado; });
+    $("#ed-desc").value = p.descripcion || "";
+    $("#ed-sku").value = p.sku || "";
+    $("#ed-vitrina").checked = !nuevo && st.datos.vitrina === p.id;
+    $("#ed-vitrina").disabled = !nuevo && st.datos.vitrina === p.id;
+    $("#ed-mas").hidden = nuevo;
+    $("#ed-error").hidden = true;
+    $("#ed-archivo").value = "";
+
+    pintarFotoEditor(); pintarMuestra(); pintarTallasEditor(); pintarPrecio();
+    if (!editor.open) editor.showModal();
+    $(".ed-cuerpo").scrollTop = 0;
+  }
+
+  function aHex(c) { return /^#[0-9a-f]{6}$/i.test(c || "") ? c.toLowerCase() : "#e6e6e6"; }
+
+  function pintarFotoEditor() {
+    $("#ed-marco").innerHTML = ed.foto ? imgFoto(ed.foto, "Foto del producto") : "Sin foto";
+    $("#ed-quitar-foto").hidden = !ed.foto;
+  }
+  function pintarMuestra() {
+    const c = ed.colores;
+    $("#ed-c2").hidden = c.length < 2;
+    $("#ed-muestra").style.background = c.length > 1 ? `linear-gradient(135deg, ${c[0]} 50%, ${c[1]} 50%)` : c[0];
+  }
+  function pintarPrecio() { $("#ed-precio").disabled = $("#ed-sin-precio").checked; }
+  function tallasEditor() {
+    if ($("#ed-unica").checked) return ["Único"];
+    const a = parseInt($("#ed-desde").value, 10), b = parseInt($("#ed-hasta").value, 10);
+    if (isNaN(a) || isNaN(b) || a > b || b - a > 30) return [];
+    const lista = [];
+    for (let n = a; n <= b; n++) lista.push(String(n));
+    return lista;
+  }
+  function pintarTallasEditor() {
+    const unica = $("#ed-unica").checked;
+    $("#ed-rango").hidden = unica;
+    const tallas = tallasEditor();
+    $("#ed-agotadas-c").hidden = tallas.length < 2;
+    $("#ed-agotadas").innerHTML = tallas.map((t) =>
+      `<button class="talla" type="button" data-talla="${esc(t)}" aria-pressed="${ed.agotadas.has(t)}" aria-label="Talla ${esc(t)}">${esc(t)}</button>`).join("");
+  }
+
+  function errorEditor(texto) {
+    const el = $("#ed-error");
+    el.textContent = texto; el.hidden = false;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+  }
+
+  function guardar(e) {
+    e.preventDefault();
+    const modelo = $("#ed-modelo").value.trim();
+    const color = $("#ed-color").value.trim();
+    const nombre = $("#ed-nombre").value.trim() || autoNombre();
+    const sinPrecio = $("#ed-sin-precio").checked;
+    const precio = parseFloat(String($("#ed-precio").value).replace(",", "."));
+    const tallasLista = tallasEditor();
+    let filtro = $("#ed-linea").value, linea;
+
+    if (filtro === "__nueva") {
+      linea = $("#ed-nueva").value.trim();
+      if (!linea) return errorEditor("Escribe el nombre de la nueva línea.");
+      filtro = norm(linea).replace(/[^a-z0-9]/g, "") || "linea";
+    } else {
+      linea = (st.datos.filtros.find(([f]) => f === filtro) || [filtro, filtro])[1];
+    }
+    if (!modelo || !color) return errorEditor("Escribe el modelo y el color.");
+    if (!sinPrecio && !(precio > 0)) return errorEditor("Escribe el precio o marca Por confirmar.");
+    if (!tallasLista.length) return errorEditor("Revisa las tallas: Desde debe ser menor o igual que Hasta.");
+
+    if (!st.datos.filtros.some(([f]) => f === filtro)) st.datos.filtros.push([filtro, linea]);
+    const anterior = ed.id ? porId(ed.id) : {};
+    const agotadas = tallasLista.length > 1 ? tallasLista.filter((t) => ed.agotadas.has(t)) : [];
+    const p = ordenar({
+      ...anterior,
+      id: ed.id || nuevoId(filtro),
+      sku: $("#ed-sku").value.trim(),
+      filtro, linea, nombre, modelo, color,
+      colores: ed.colores.slice(),
+      precio: sinPrecio ? null : Math.round(precio * 100) / 100,
+      tallas: $("#ed-unica").checked ? ["Único"] : [Number(tallasLista[0]), Number(tallasLista[tallasLista.length - 1])],
+      agotadas: agotadas.length ? agotadas : undefined,
+      estado: ($("input[name=ed-estado]:checked") || {}).value || "disponible",
+      foto: ed.foto,
+      descripcion: $("#ed-desc").value.trim()
+    });
+    reemplazar(p);
+    if ($("#ed-vitrina").checked) st.datos.vitrina = p.id;
+    editor.close();
+    pintar();
+    avisar("Guardado. Toca Publicar para subirlo a la tienda.");
+  }
+
+  /* ---------- Eventos del editor ---------- */
+  $("#ed-form").addEventListener("submit", guardar);
+  $("#ed-form").addEventListener("input", () => { $("#ed-error").hidden = true; });
+  editor.addEventListener("click", (e) => {
+    if (e.target === editor || e.target.closest("[data-cerrar]")) { editor.close(); return; }
+    const t = e.target.closest("#ed-agotadas .talla");
+    if (t) {
+      const v = t.dataset.talla;
+      if (ed.agotadas.has(v)) ed.agotadas.delete(v); else ed.agotadas.add(v);
+      t.setAttribute("aria-pressed", String(ed.agotadas.has(v)));
+    }
+  });
+  $("#ed-linea").addEventListener("change", () => {
+    $("#ed-nueva-c").hidden = $("#ed-linea").value !== "__nueva";
+    if (!$("#ed-nueva-c").hidden) $("#ed-nueva").focus();
+  });
+  ["#ed-modelo", "#ed-color"].forEach((s) => $(s).addEventListener("input", () => {
+    const nuevo = autoNombre();
+    if ($("#ed-nombre").value.trim() === ed.nombreAuto) $("#ed-nombre").value = nuevo;
+    ed.nombreAuto = nuevo;
+  }));
+  $("#ed-c1").addEventListener("input", (e) => { ed.colores[0] = e.target.value.toUpperCase(); pintarMuestra(); });
+  $("#ed-c2").addEventListener("input", (e) => { if (ed.colores.length > 1) ed.colores[1] = e.target.value.toUpperCase(); pintarMuestra(); });
+  $("#ed-dos").addEventListener("change", (e) => {
+    ed.colores = e.target.checked ? [ed.colores[0], $("#ed-c2").value.toUpperCase()] : [ed.colores[0]];
+    pintarMuestra();
+  });
+  $("#ed-sin-precio").addEventListener("change", pintarPrecio);
+  ["#ed-desde", "#ed-hasta", "#ed-unica"].forEach((s) => $(s).addEventListener("input", pintarTallasEditor));
+  $("#ed-unica").addEventListener("change", pintarTallasEditor);
+
+  $("#ed-archivo").addEventListener("change", async (e) => {
+    const archivo = e.target.files && e.target.files[0];
+    if (!archivo) return;
+    $("#ed-marco").textContent = "Preparando foto…";
+    try {
+      const foto = await procesarFoto(archivo);
+      if (ed.foto && st.subidas.has(ed.foto) && !st.datos.productos.some((p) => p.foto === ed.foto)) st.subidas.delete(ed.foto);
+      const ruta = nombreFoto($("#ed-nombre").value.trim() || autoNombre() || "producto");
+      st.subidas.set(ruta, foto.b64);
+      st.vistas.set(ruta, foto.url);
+      ed.foto = ruta;
+    } catch (err) {
+      avisar(err.message || "No se pudo usar esa foto. Prueba con otra.", true);
+    }
+    pintarFotoEditor();
+    e.target.value = "";
+  });
+  $("#ed-quitar-foto").addEventListener("click", () => { ed.foto = null; pintarFotoEditor(); });
+
+  $("#ed-otro-color").addEventListener("click", () => {
+    const p = porId(ed.id);
+    if (!p) return;
+    abrirEditor({ filtro: p.filtro, linea: p.linea, modelo: p.modelo, precio: p.precio, tallas: p.tallas, estado: "disponible", colores: ["#E6E6E6"] },
+      "Nuevo color de " + p.modelo);
+  });
+
+  $("#ed-eliminar").addEventListener("click", () => {
+    const p = porId(ed.id);
+    if (!p) return;
+    if (st.datos.vitrina === p.id) {
+      errorEditor("Este producto está en la vitrina. Pon otro producto en la vitrina antes de eliminarlo.");
+      return;
+    }
+    if (!confirm(`¿Eliminar ${p.nombre} del catálogo?`)) return;
+    st.datos.productos = st.datos.productos.filter((x) => x.id !== p.id);
+    editor.close();
+    pintar();
+    avisar("Eliminado. Toca Publicar para quitarlo de la tienda.");
+  });
+
+  /* ---------- Eventos de la lista ---------- */
+  $("#lista").addEventListener("click", (e) => {
+    const t = e.target.closest(".talla");
+    if (t) {
+      const p = porId(Number(t.dataset.id));
+      if (p) { alternarTalla(p, t.dataset.talla); pintar(); }
+      return;
+    }
+    const abrir = e.target.closest("[data-editar]");
+    if (abrir) abrirEditor(porId(Number(abrir.dataset.editar)));
+  });
+  $("#filtros").addEventListener("click", (e) => {
+    const b = e.target.closest(".chip");
+    if (b) { st.filtro = b.dataset.filtro; pintar(); }
+  });
+  $("#buscar").addEventListener("input", (e) => { st.busqueda = e.target.value; pintar(); });
+  $("#nuevo").addEventListener("click", () => abrirEditor({ estado: "disponible", colores: ["#E6E6E6"] }));
+
+  /* ---------- Publicar ---------- */
+  function mensaje(lineas) {
+    return "Catálogo: " + (lineas.length === 1 ? lineas[0] : lineas.length + " cambios") +
+      "\n\n" + lineas.map((l) => "- " + l).join("\n") + "\n\nHecho desde admin.html";
+  }
+
+  async function publicar() {
+    const { lineas } = diferencias();
+    if (!lineas.length || st.publicando) return;
+    st.publicando = true;
+    const boton = $("#publicar");
+    boton.disabled = true; $("#descartar").disabled = true;
+    boton.textContent = "Publicando…";
+    try {
+      const ref = await api("/git/ref/heads/" + RAMA);
+      const head = ref.object.sha;
+      const actual = await api("/contents/productos.json?ref=" + head);
+      if (actual.sha !== st.jsonSha) { const e = new Error("conflicto"); e.conflicto = true; throw e; }
+      const commit = await api("/git/commits/" + head);
+
+      const usadas = new Set(st.datos.productos.map((p) => p.foto).filter(Boolean));
+      const usadasAntes = new Set(st.orig.productos.map((p) => p.foto).filter(Boolean));
+      const arbol = [{ path: "productos.json", mode: "100644", type: "blob", content: serializar(st.datos) }];
+      for (const [ruta, b64] of st.subidas) {
+        if (!usadas.has(ruta)) continue;
+        const blob = await api("/git/blobs", { method: "POST", body: JSON.stringify({ content: b64, encoding: "base64" }) });
+        arbol.push({ path: ruta, mode: "100644", type: "blob", sha: blob.sha });
+      }
+      // Las fotos que ya no usa ningún producto se borran del repositorio
+      usadasAntes.forEach((ruta) => {
+        if (!usadas.has(ruta) && st.fotos.has(ruta)) arbol.push({ path: ruta, mode: "100644", type: "blob", sha: null });
+      });
+
+      const nuevoArbol = await api("/git/trees", { method: "POST", body: JSON.stringify({ base_tree: commit.tree.sha, tree: arbol }) });
+      const nuevo = await api("/git/commits", { method: "POST", body: JSON.stringify({ message: mensaje(lineas), tree: nuevoArbol.sha, parents: [head] }) });
+      await api("/git/refs/heads/" + RAMA, { method: "PATCH", body: JSON.stringify({ sha: nuevo.sha }) });
+      await cargar(nuevo.sha);
+      pintar();
+      avisar("Publicado. La tienda se actualiza en 1 o 2 minutos.");
+    } catch (e) {
+      if (e.conflicto || e.status === 409 || e.status === 422) avisar("El catálogo cambió desde otro lugar mientras editabas. Toca Descartar para cargar la versión nueva y vuelve a hacer tus cambios.", true);
+      else if (e.status === 401) { avisar("Tu token venció o fue revocado. Entra con uno nuevo; tus cambios siguen aquí.", true); token = ""; mostrarAcceso(); }
+      else if (e.status === 403 || e.status === 404) avisar("Este token no puede escribir en Zazi-pe/Zazi. Crea uno con Contents: Read and write.", true);
+      else avisar("No se pudo publicar" + (e.status ? " (GitHub " + e.status + ")" : ". Revisa tu conexión") + ". Tus cambios siguen aquí; vuelve a intentarlo.", true);
+    } finally {
+      st.publicando = false;
+      boton.disabled = false; $("#descartar").disabled = false;
+      boton.textContent = "Publicar";
+    }
+  }
+  $("#publicar").addEventListener("click", publicar);
+
+  $("#descartar").addEventListener("click", async () => {
+    const n = diferencias().lineas.length;
+    if (n && !confirm(n === 1 ? "¿Descartar el cambio sin publicar?" : `¿Descartar los ${n} cambios sin publicar?`)) return;
+    mostrar("cargando");
+    try { await cargar(RAMA); mostrar("panel"); pintar(); }
+    catch (e) { manejarErrorCarga(e); }
+  });
+
+  window.addEventListener("beforeunload", (e) => {
+    if (st.datos && diferencias().lineas.length) { e.preventDefault(); e.returnValue = ""; }
+  });
+
+  /* ---------- Acceso ---------- */
+  function mostrarAcceso(texto) {
+    mostrar("acceso");
+    $("#acceso-error").textContent = texto || "";
+    $("#acceso-error").hidden = !texto;
+  }
+  function manejarErrorCarga(e) {
+    if (e.status === 401) { token = ""; try { localStorage.removeItem(CLAVE_TOKEN); } catch (_) {} mostrarAcceso("El token no es válido o ya venció. Crea uno nuevo."); }
+    else if (e.status === 403 || e.status === 404) mostrarAcceso("Este token no tiene acceso a Zazi-pe/Zazi. Revisa el paso 3 y el paso 4.");
+    else mostrarAcceso("No se pudo cargar el catálogo. Revisa tu conexión y vuelve a intentarlo.");
+  }
+
+  $("#form-acceso").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const valor = $("#token").value.trim();
+    if (!valor) { mostrarAcceso("Pega tu token de GitHub."); return; }
+    const pendiente = st.datos && diferencias().lineas.length;
+    token = valor;
+    $("#entrar").disabled = true;
+    try {
+      if (!pendiente) await cargar(RAMA);
+      else await api("");
+      try { localStorage.setItem(CLAVE_TOKEN, token); } catch (_) { /* sin almacenamiento */ }
+      $("#token").value = "";
+      mostrar("panel"); pintar();
+    } catch (err) { manejarErrorCarga(err); }
+    finally { $("#entrar").disabled = false; }
+  });
+
+  $("#salir").addEventListener("click", () => {
+    const n = diferencias().lineas.length;
+    if (n && !confirm("Tienes cambios sin publicar. ¿Salir de todas formas?")) return;
+    try { localStorage.removeItem(CLAVE_TOKEN); } catch (_) {}
+    token = ""; st.datos = null;
+    mostrarAcceso();
+  });
+
+  /* ---------- Arranque ---------- */
+  (async () => {
+    if (!token) { mostrarAcceso(); return; }
+    mostrar("cargando");
+    try { await cargar(RAMA); mostrar("panel"); pintar(); }
+    catch (e) { manejarErrorCarga(e); }
+  })();
+})();
+</script>
+</body>
+</html>
