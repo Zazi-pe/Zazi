@@ -219,9 +219,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .m-tallas-ayuda{font-size:.875rem;color:var(--gris)}
 
 
-/* Paneles desde abajo: "Add to bag" y carrito */
-#hoja,#carrito{position:fixed;inset:auto 0 0 0;margin:0 auto;width:min(560px,100vw);max-height:85dvh;border-radius:14px 14px 0 0;box-shadow:0 -12px 32px rgba(0,0,0,.18);background:#fff}
-#hoja{height:auto;overflow-y:auto}
+/* Panel del carrito (sube desde abajo) */
+#carrito{position:fixed;inset:auto 0 0 0;margin:0 auto;width:min(560px,100vw);max-height:85dvh;border-radius:14px 14px 0 0;box-shadow:0 -12px 32px rgba(0,0,0,.18);background:#fff}
 #carrito{height:min(85dvh,780px)}
 #carrito[open]{display:flex;flex-direction:column}
 .hoja-cab{position:relative;display:flex;align-items:center;justify-content:center;padding:16px 60px 8px}
@@ -229,24 +228,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .hoja-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:46px;height:46px;display:grid;place-items:center;background:none;border:0;border-radius:999px;color:var(--tinta)}
 .hoja-x svg{width:24px;height:24px}
 .hoja-x:hover{background:var(--piedra)}
-.hoja-prod{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:12px 20px 20px}
-.h-foto{aspect-ratio:4/5;background:var(--piedra);overflow:hidden}
-.h-foto img{width:100%;height:100%;object-fit:cover}
-.h-datos{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
-.h-nombre{font-size:1.0625rem;font-weight:400;line-height:1.35}
-.h-linea{font-size:1rem;color:var(--gris)}
-.h-precio{font-size:1.0625rem;font-weight:500;font-variant-numeric:tabular-nums}
-.hoja-sub{font-family:var(--f-titulo);font-weight:600;font-size:1.3rem;letter-spacing:.03em;text-transform:uppercase;padding:0 20px 12px;border-bottom:1px solid var(--linea)}
-.hoja-tallas{padding-bottom:12px}
-.hoja-tallas li{border-bottom:1px solid var(--linea)}
-.h-talla{width:100%;display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:14px 20px;background:none;border:0;font-size:1.0625rem;text-align:left}
-.h-talla:hover,.h-talla:focus-visible{background:#fafafa}
-.h-talla.agotada{color:#5f5f5f;cursor:not-allowed}
-.h-talla.agotada span{text-decoration:line-through;text-decoration-thickness:1px}
-.h-talla.agotada .h-add{color:#9a9a9a}
-.h-talla.agotada:hover{background:none}
-.h-add{display:inline-flex;align-items:center;gap:8px}
-.h-add b{font-weight:300;font-size:1.35rem;line-height:1}
 
 /* Carrito */
 .cajon-cab{position:relative;display:flex;align-items:center;padding:16px 60px 12px 20px;border-bottom:1px solid var(--linea)}
@@ -295,7 +276,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 /* ---------- Movimiento: solo como respuesta a una acción ---------- */
 @media (prefers-reduced-motion:no-preference){
   #modal[open]{animation:subir .22s ease-out}
-  #carrito[open],#hoja[open]{animation:hoja-sube .34s cubic-bezier(.2,.8,.2,1)}
+  #carrito[open]{animation:hoja-sube .34s cubic-bezier(.2,.8,.2,1)}
   @keyframes subir{from{transform:translateY(16px);opacity:0}}
   @keyframes hoja-sube{from{transform:translateY(100%)}}
 }
@@ -335,7 +316,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   .modal-cuerpo{--pad-m:20px;padding:22px var(--pad-m) 28px}
 }
 @media (max-width:420px){
-  .hoja-prod{grid-template-columns:96px 1fr;gap:14px}
   .c-item{grid-template-columns:88px 1fr}
   .c-foto{width:88px;height:110px}
 }
@@ -478,17 +458,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <div class="modal-media" id="m-media"></div>
     <div class="modal-cuerpo" id="m-cuerpo"></div>
   </div>
-</dialog>
-
-<!-- Panel "Add to bag": elegir talla -->
-<dialog id="hoja" aria-labelledby="h-titulo">
-  <div class="hoja-cab">
-    <h2 id="h-titulo">Añadir al carrito</h2>
-    <button class="hoja-x" type="button" data-cerrar aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
-  </div>
-  <div class="hoja-prod" id="h-prod"></div>
-  <h3 class="hoja-sub">Elige tu talla</h3>
-  <ul class="hoja-tallas" id="h-tallas"></ul>
 </dialog>
 
 <!-- Carrito y pago -->
@@ -657,9 +626,10 @@ const TIENDA = {
   }
 
   function listaVisible() {
-    const q = norm(estado.busqueda.trim());
+    // Búsqueda por varias palabras: "you negro" muestra solo lo que tiene ambas
+    const palabras = norm(estado.busqueda).split(/\s+/).filter(Boolean);
     let lista = PRODUCTOS.filter((p) => (estado.filtro === "all" || p.filtro === estado.filtro) &&
-      (!q || norm(p.nombre + " " + p.linea).includes(q)));
+      palabras.every((w) => norm(p.nombre + " " + p.linea).includes(w)));
     const valor = (p, vacio) => (consultar(p) ? vacio : p.precio);
     // "Recomendados" muestra primero lo último agregado al catálogo (mayor id = más nuevo).
     if (estado.orden === "destacados") lista = [...lista].sort((a, b) => b.id - a.id);
@@ -847,49 +817,9 @@ const TIENDA = {
     }
   });
   modal.addEventListener("close", () => {
-    if (!$("#carrito").open && !$("#hoja").open) document.documentElement.classList.remove("bloqueado");
+    if (!$("#carrito").open) document.documentElement.classList.remove("bloqueado");
     if (/^#p\d+$/.test(location.hash)) history.replaceState(null, "", location.pathname + location.search);
     productoAbierto = null;
-  });
-
-  /* ---------- Panel "Add to bag": al elegir talla se añade y se abre el carrito ---------- */
-  const hoja = $("#hoja");
-  let productoHoja = null;
-  function abrirHoja(p) {
-    productoHoja = p;
-    const foto = p.foto ? `<img src="${esc(p.foto)}" alt="${esc(p.nombre)}">` : `<div class="sin-foto">${ICONO_ZAPATILLA}</div>`;
-    $("#h-prod").innerHTML = `
-      <div class="h-foto">${foto}</div>
-      <div class="h-datos">
-        ${esNuevo(p) ? '<span class="tag-nuevo">Nuevo</span>' : ""}
-        <span class="h-nombre">${esc(p.nombre)}</span>
-        <span class="h-linea">${esc(p.linea)}</span>
-        <span class="h-precio">${precioTxt(p)}</span>
-      </div>`;
-    const agotadas = (p.agotadas || []).map(String);
-    $("#h-tallas").innerHTML = tallasDe(p).map((t) => {
-      const sinStock = agotadas.includes(t);
-      return `<li><button type="button" class="h-talla${sinStock ? " agotada" : ""}" data-talla="${esc(t)}"${sinStock ? " disabled aria-disabled=\"true\"" : ""}>
-        <span>${t === "Único" ? "Talla única" : "Talla " + esc(t)}</span>
-        <span class="h-add">${sinStock ? "Sin stock" : `Añadir <b aria-hidden="true">+</b>`}</span>
-      </button></li>`;
-    }).join("");
-    if (!hoja.open) hoja.showModal();
-    hoja.scrollTop = 0;
-    document.documentElement.classList.add("bloqueado");
-  }
-  hoja.addEventListener("click", (e) => {
-    if (e.target === hoja || e.target.closest("[data-cerrar]")) { hoja.close(); return; }
-    const b = e.target.closest(".h-talla");
-    if (b && !b.disabled && productoHoja) {
-      agregar(productoHoja.id, b.dataset.talla);
-      hoja.close();
-      abrirCarrito();
-    }
-  });
-  hoja.addEventListener("close", () => {
-    if (!modal.open && !$("#carrito").open) document.documentElement.classList.remove("bloqueado");
-    productoHoja = null;
   });
 
   /* ---------- Aviso al añadir ---------- */
@@ -976,7 +906,7 @@ const TIENDA = {
     if (d.quitar !== undefined) { estado.carrito.splice(Number(d.quitar), 1); guardarCarrito(); pintarCarrito(); }
   });
   carrito.addEventListener("close", () => {
-    if (!modal.open && !hoja.open) document.documentElement.classList.remove("bloqueado");
+    if (!modal.open) document.documentElement.classList.remove("bloqueado");
     mostrarVista("carrito");
   });
   $("#vaciar").addEventListener("click", () => {
