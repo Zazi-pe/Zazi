@@ -1,0 +1,48 @@
+ ZAZI — publica el catálogo en GitHub Pages.
+# Antes de publicar revisa productos.json (validar.js). Si hay errores,
+# no publica y la tienda sigue mostrando la última versión buena.
+name: Publicar catálogo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Revisar el catálogo
+        run: node validar.js
+
+      - name: Armar el sitio
+        run: |
+          mkdir -p _site
+          cp index.html admin.html productos.json validar.js _site/
+          if [ -d fotos ]; then cp -r fotos _site/; fi
+          if [ -d img ]; then cp -r img _site/; fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4
