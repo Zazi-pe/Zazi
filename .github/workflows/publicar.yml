@@ -1,4 +1,4 @@
- ZAZI — publica el catálogo en GitHub Pages.
+# ZAZI — publica el catálogo en GitHub Pages.
 # Antes de publicar revisa productos.json (validar.js). Si hay errores,
 # no publica y la tienda sigue mostrando la última versión buena.
 name: Publicar catálogo
