@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <title>ZAZI — Admin</title>
+<script src="validar.js"></script>
 <link rel="icon" type="image/png" href="img/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +14,8 @@
 <style>
 /* ============================================================
    ZAZI — panel para editar el catálogo
-   Guarda los cambios en GitHub (productos.json y fotos/).
+   El mismo archivo sirve para Zazi y Zazi-Modelos: reconoce el catálogo
+   por la dirección. Guarda los cambios en GitHub (productos.json y fotos/).
    ============================================================ */
 :root{
   --tinta:#000;--papel:#fff;--piedra:#F4F4F4;--linea:#E6E6E6;--gris:#767676;
@@ -84,6 +86,16 @@ textarea.input{min-height:110px;resize:vertical;line-height:1.5}
 .estado-agotado{color:var(--alerta);font-weight:600}
 .estado-proximamente{color:#8A5A00;font-weight:600}
 .en-vitrina{color:var(--fucsia);font-weight:600}
+.es-nuevo{color:var(--tinta);font-weight:600}
+#revision{width:min(560px,calc(100vw - 32px));max-height:85dvh;margin:auto;border-radius:12px;overflow:auto}
+.rev{padding:20px;display:flex;flex-direction:column;gap:14px}
+.rev h2{font-size:1.35rem}
+.rev ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.rev li{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:10px 12px;border-radius:var(--r);background:var(--piedra);font-size:.9375rem}
+.rev li.e{background:#FBEAEA}
+.rev li b{display:block}
+.rev-acc{display:flex;gap:10px}
+.rev-acc .btn{flex:1}
 .tallas{display:flex;flex-wrap:wrap;gap:6px}
 .fila .tallas{padding-left:78px}
 .talla{min-width:46px;min-height:42px;padding:0 8px;border:1px solid #cfcfcf;border-radius:4px;background:#fff;font-size:.9375rem;font-weight:500;font-variant-numeric:tabular-nums}
@@ -146,9 +158,9 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 <header class="cab">
   <div class="cab-in">
     <img src="img/logo-zazi.png" alt="ZAZI" width="66" height="22">
-    <span class="cab-t">Admin</span>
+    <span class="cab-t" id="cab-t">Admin</span>
     <div class="cab-acc">
-      <a class="lnk" href="../Zazi-Modelos/admin.html">Modelos</a>
+      <a class="lnk" id="otro-admin" href="../Zazi-Modelos/admin.html">Modelos</a>
       <a class="lnk" href="./" target="_blank" rel="noopener">Tienda</a>
       <button class="lnk" type="button" id="salir" hidden>Salir</button>
     </div>
@@ -215,10 +227,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         </div>
       </div>
 
-      <label class="campo">Línea
+      <label class="campo"><span id="ed-linea-t">Línea</span>
         <select class="input" id="ed-linea"></select>
       </label>
-      <label class="campo" id="ed-nueva-c" hidden>Nombre de la nueva línea
+      <label class="campo" id="ed-nueva-c" hidden><span id="ed-nueva-t">Nombre de la nueva línea</span>
         <input class="input" id="ed-nueva" autocomplete="off" placeholder="Ej. Kiara">
       </label>
 
@@ -276,7 +288,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         </div>
       </fieldset>
 
-      <label class="campo">Descripción
+      <label class="campo" id="ed-desc-c">Descripción
         <textarea class="input" id="ed-desc"></textarea>
       </label>
 
@@ -285,7 +297,15 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <small>Opcional. Servirá para conectar con Bsale más adelante.</small>
       </label>
 
-      <label class="check"><input type="checkbox" id="ed-vitrina"> Mostrar en la vitrina de la portada</label>
+      <fieldset class="campo">
+        <legend>Etiqueta "Nuevo"</legend>
+        <div class="seg">
+          <label><input type="radio" name="ed-nuevo" value="auto"><span>Automático</span></label>
+          <label><input type="radio" name="ed-nuevo" value="si"><span>Sí</span></label>
+          <label><input type="radio" name="ed-nuevo" value="no"><span>No</span></label>
+        </div>
+        <small id="ed-nuevo-nota"></small>
+      </fieldset>
 
       <p class="error" id="ed-error" role="alert" hidden></p>
 
@@ -301,16 +321,36 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </form>
 </dialog>
 
+<dialog id="revision" aria-labelledby="rev-titulo">
+  <div class="rev">
+    <h2 id="rev-titulo">Revisión</h2>
+    <p id="rev-texto"></p>
+    <ul id="rev-lista"></ul>
+    <div class="rev-acc">
+      <button class="btn" type="button" data-cerrar>Volver</button>
+      <button class="btn btn-negro" type="button" id="rev-publicar">Publicar de todas formas</button>
+    </div>
+  </div>
+</dialog>
+
 <div id="aviso" role="status" aria-live="polite" hidden></div>
 
 <script>
 (() => {
   "use strict";
 
-  const REPO = "Zazi-pe/Zazi";
+  /* Qué catálogo es (por la dirección; para probar: ?sitio=zazi-modelos) */
+  const CATALOGOS = {
+    "zazi":         { repo: "Zazi-pe/Zazi",         titulo: "Zazi",    otro: "zazi-modelos", otroTitulo: "Modelos", descripciones: true,  grupo: "línea" },
+    "zazi-modelos": { repo: "Zazi-pe/Zazi-Modelos", titulo: "Modelos", otro: "zazi",         otroTitulo: "Zazi",    descripciones: false, grupo: "categoría" }
+  };
+  const nombreSitio = (new URLSearchParams(location.search).get("sitio") || location.pathname.split("/").filter(Boolean)[0] || "zazi").toLowerCase();
+  const CAT = CATALOGOS[nombreSitio] || CATALOGOS.zazi;
+  const REPO = CAT.repo;
   const RAMA = "main";
-  const CLAVE_TOKEN = "zazi-admin-token";
-  const ORDEN = ["id", "sku", "filtro", "linea", "nombre", "modelo", "color", "colores", "precio", "tallas", "agotadas", "estado", "foto", "descripcion"];
+  const CLAVE_TOKEN = "zazi-admin-token";        // el mismo token sirve para los dos catálogos
+  const DIAS_NUEVO = 14;                          // igual que en index.html
+  const ORDEN = ["id", "sku", "filtro", "linea", "nombre", "modelo", "color", "colores", "precio", "tallas", "agotadas", "estado", "nuevo", "creado", "foto", "descripcion"];
   const ESTADOS = { disponible: "Disponible", agotado: "Agotado", proximamente: "Próximamente" };
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -322,7 +362,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
   /* ---------- Estado ---------- */
   const st = {
-    original: "", orig: null, datos: null, jsonSha: "",
+    original: "", orig: null, datos: null, head: "", arbol: "",
+    archivos: new Set(),    // rutas que existen en el repo
     fotos: new Set(),       // rutas que existen en fotos/ del repo
     subidas: new Map(),     // ruta -> foto nueva en base64, aún sin publicar
     vistas: new Map(),      // ruta -> vista previa local de fotos nuevas
@@ -348,21 +389,24 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
   function serializar(d) {
     return "{\n" +
-      '  "vitrina": ' + JSON.stringify(d.vitrina) + ",\n" +
       '  "filtros": ' + JSON.stringify(d.filtros) + ",\n" +
       '  "productos": [\n' + d.productos.map((p) => "    " + JSON.stringify(p)).join(",\n") + "\n  ]\n}\n";
   }
 
-  async function cargar(ref) {
-    const [archivo, carpeta] = await Promise.all([
-      api("/contents/productos.json?ref=" + ref),
-      api("/contents/fotos?ref=" + ref).catch((e) => (e.status === 404 ? [] : Promise.reject(e)))
+  async function cargar() {
+    const ref = await api("/git/ref/heads/" + RAMA);
+    const commit = await api("/git/commits/" + ref.object.sha);
+    const [archivo, arbol] = await Promise.all([
+      api("/contents/productos.json?ref=" + ref.object.sha),
+      api("/git/trees/" + commit.tree.sha + "?recursive=1")
     ]);
+    st.head = ref.object.sha;
+    st.arbol = commit.tree.sha;
     st.original = deBase64(archivo.content);
-    st.jsonSha = archivo.sha;
     st.orig = JSON.parse(st.original);
     st.datos = JSON.parse(st.original);
-    st.fotos = new Set(carpeta.map((f) => f.path));
+    st.archivos = new Set(arbol.tree.filter((e) => e.type === "blob").map((e) => e.path));
+    st.fotos = new Set([...st.archivos].filter((r) => r.startsWith("fotos/")));
     st.subidas.clear();
   }
 
@@ -383,6 +427,15 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     return t.map(String);
   }
   const porId = (id) => st.datos.productos.find((p) => p.id === id);
+  const hoy = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date());
+  const fechaDe = (p) => Date.parse(p.creado) || 0;
+  const esNuevo = (p) => p.nuevo === "si" ? true : p.nuevo === "no" ? false :
+    fechaDe(p) > 0 && Date.now() - fechaDe(p) < DIAS_NUEVO * 864e5;
+  // la vitrina de la tienda es automática: el producto más nuevo con foto
+  const idVitrina = () => {
+    const p = st.datos.productos.filter((x) => x.foto).sort((a, b) => fechaDe(b) - fechaDe(a) || b.id - a.id)[0];
+    return p ? p.id : null;
+  };
   const srcFoto = (ruta) => st.vistas.get(ruta) || encodeURI(ruta);
   // Si la tienda aún no termina de actualizarse, la foto se toma directo del repositorio
   const RAW = "https://raw.githubusercontent.com/" + REPO + "/" + RAMA + "/";
@@ -405,9 +458,9 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     return (mayor + 1) * 1000 + 1;
   }
 
-  function nombreFoto(nombre) {
+  function nombreFoto(nombre, filtro) {
     const usadas = new Set([...st.fotos, ...st.subidas.keys(), ...st.datos.productos.map((p) => p.foto)]);
-    const base = "fotos/" + (slug(nombre) || "producto");
+    const base = "fotos/" + (slug(filtro) || "otros") + "/" + (slug(nombre) || "producto");
     let ruta = base + ".jpg", n = 2;
     while (usadas.has(ruta)) ruta = base + "-" + n++ + ".jpg";
     return ruta;
@@ -457,10 +510,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       antes.delete(p.id);
     });
     antes.forEach((a) => lineas.push("Eliminado: " + a.nombre));
-    if (st.orig.vitrina !== st.datos.vitrina) {
-      const v = porId(st.datos.vitrina);
-      lineas.push("Vitrina: " + (v ? v.nombre : "ninguna"));
-    }
     if (!lineas.length && JSON.stringify(st.orig.filtros) !== JSON.stringify(st.datos.filtros)) lineas.push("Filtros actualizados");
     return { lineas, ids };
   }
@@ -513,7 +562,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     const datos = [
       `<span>${p.precio == null ? "Precio por confirmar" : soles(p.precio)}</span>`,
       `<span class="estado-${esc(p.estado)}">${esc(ESTADOS[p.estado] || p.estado)}</span>`,
-      st.datos.vitrina === p.id ? '<span class="en-vitrina">En vitrina</span>' : ""
+      esNuevo(p) ? '<span class="es-nuevo">Nuevo</span>' : "",
+      idVitrina() === p.id ? '<span class="en-vitrina">En vitrina</span>' : ""
     ].join("");
     const botones = tallas.length > 1 ? `<div class="tallas" role="group" aria-label="Tallas de ${esc(p.nombre)}">
       ${tallas.map((t) => `<button class="talla" type="button" data-id="${p.id}" data-talla="${esc(t)}" aria-pressed="${agotadas.includes(t)}" aria-label="Talla ${esc(t)}${agotadas.includes(t) ? ", agotada" : ""}">${esc(t)}</button>`).join("")}
@@ -536,7 +586,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
   /* ---------- Editor ---------- */
   const editor = $("#editor");
-  const ed = { id: null, foto: null, colores: [], agotadas: new Set(), nombreAuto: "" };
+  const ed = { id: null, foto: null, colores: [], agotadas: new Set(), nombreAuto: "", creado: "", tocado: false };
 
   const autoNombre = () => [$("#ed-modelo").value.trim(), $("#ed-color").value.trim()].filter(Boolean).join(" ");
 
@@ -546,11 +596,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     ed.foto = p.foto || null;
     ed.colores = (p.colores && p.colores.length ? p.colores : ["#E6E6E6"]).slice(0, 2);
     ed.agotadas = new Set((p.agotadas || []).map(String));
+    ed.tocado = !nuevo;
     $("#ed-titulo").textContent = titulo || (nuevo ? "Nuevo producto" : "Editar producto");
 
     const filtros = st.datos.filtros;
     $("#ed-linea").innerHTML = filtros.map(([f, n]) => `<option value="${esc(f)}">${esc(n)}</option>`).join("") +
-      '<option value="__nueva">Nueva línea…</option>';
+      `<option value="__nueva">Nueva ${CAT.grupo}…</option>`;
     $("#ed-linea").value = p.filtro && filtros.some(([f]) => f === p.filtro) ? p.filtro : (filtros.length ? (st.filtro !== "all" ? st.filtro : filtros[filtros.length - 1][0]) : "__nueva");
     $("#ed-nueva").value = "";
     $("#ed-nueva-c").hidden = $("#ed-linea").value !== "__nueva";
@@ -577,8 +628,11 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     $$("input[name=ed-estado]").forEach((r) => { r.checked = r.value === estado; });
     $("#ed-desc").value = p.descripcion || "";
     $("#ed-sku").value = p.sku || "";
-    $("#ed-vitrina").checked = !nuevo && st.datos.vitrina === p.id;
-    $("#ed-vitrina").disabled = !nuevo && st.datos.vitrina === p.id;
+    const valorNuevo = p.nuevo === "si" || p.nuevo === "no" ? p.nuevo : "auto";
+    $$("input[name=ed-nuevo]").forEach((r) => { r.checked = r.value === valorNuevo; });
+    ed.creado = p.creado || "";
+    pintarNotaNuevo();
+    $("#ed-desc-c").hidden = !CAT.descripciones;
     $("#ed-mas").hidden = nuevo;
     $("#ed-error").hidden = true;
     $("#ed-archivo").value = "";
@@ -588,6 +642,14 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     $(".ed-cuerpo").scrollTop = 0;
   }
 
+  function pintarNotaNuevo() {
+    const v = ($("input[name=ed-nuevo]:checked") || {}).value || "auto";
+    const f = Date.parse(ed.creado || hoy());
+    const hasta = new Date(f + DIAS_NUEVO * 864e5);
+    const fmt = (d) => d.toLocaleDateString("es-PE", { day: "numeric", month: "long", timeZone: "UTC" });
+    $("#ed-nuevo-nota").textContent = v === "si" ? "Siempre muestra \"Nuevo\"." : v === "no" ? "Nunca muestra \"Nuevo\"." :
+      "Agregado el " + fmt(new Date(f)) + ". Muestra \"Nuevo\" hasta el " + fmt(hasta) + ".";
+  }
   function aHex(c) { return /^#[0-9a-f]{6}$/i.test(c || "") ? c.toLowerCase() : "#e6e6e6"; }
 
   function pintarFotoEditor() {
@@ -635,7 +697,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
     if (filtro === "__nueva") {
       linea = $("#ed-nueva").value.trim();
-      if (!linea) return errorEditor("Escribe el nombre de la nueva línea.");
+      if (!linea) return errorEditor("Escribe el nombre de la nueva " + CAT.grupo + ".");
       filtro = norm(linea).replace(/[^a-z0-9]/g, "") || "linea";
     } else {
       linea = (st.datos.filtros.find(([f]) => f === filtro) || [filtro, filtro])[1];
@@ -646,6 +708,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
     if (!st.datos.filtros.some(([f]) => f === filtro)) st.datos.filtros.push([filtro, linea]);
     const anterior = ed.id ? porId(ed.id) : {};
+    const valorNuevo = ($("input[name=ed-nuevo]:checked") || {}).value || "auto";
     const agotadas = tallasLista.length > 1 ? tallasLista.filter((t) => ed.agotadas.has(t)) : [];
     const p = ordenar({
       ...anterior,
@@ -657,11 +720,20 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       tallas: $("#ed-unica").checked ? ["Único"] : [Number(tallasLista[0]), Number(tallasLista[tallasLista.length - 1])],
       agotadas: agotadas.length ? agotadas : undefined,
       estado: ($("input[name=ed-estado]:checked") || {}).value || "disponible",
+      nuevo: valorNuevo === "auto" ? undefined : valorNuevo,
+      creado: anterior.creado || hoy(),
       foto: ed.foto,
-      descripcion: $("#ed-desc").value.trim()
+      descripcion: CAT.descripciones ? $("#ed-desc").value.trim() : (anterior.descripcion || undefined)
     });
+    // la foto nueva toma su nombre definitivo (línea y nombre del producto) al guardar
+    if (p.foto && st.subidas.has(p.foto)) {
+      const b64 = st.subidas.get(p.foto), vista = st.vistas.get(p.foto);
+      st.subidas.delete(p.foto);
+      const ruta = nombreFoto(p.nombre, p.filtro);
+      st.subidas.set(ruta, b64); st.vistas.set(ruta, vista);
+      p.foto = ruta;
+    }
     reemplazar(p);
-    if ($("#ed-vitrina").checked) st.datos.vitrina = p.id;
     editor.close();
     pintar();
     avisar("Guardado. Toca Publicar para subirlo a la tienda.");
@@ -688,10 +760,22 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     if ($("#ed-nombre").value.trim() === ed.nombreAuto) $("#ed-nombre").value = nuevo;
     ed.nombreAuto = nuevo;
   }));
-  $("#ed-c1").addEventListener("input", (e) => { ed.colores[0] = e.target.value.toUpperCase(); pintarMuestra(); });
-  $("#ed-c2").addEventListener("input", (e) => { if (ed.colores.length > 1) ed.colores[1] = e.target.value.toUpperCase(); pintarMuestra(); });
+  $("#ed-c1").addEventListener("input", (e) => { ed.tocado = true; ed.colores[0] = e.target.value.toUpperCase(); pintarMuestra(); });
+  $("#ed-c2").addEventListener("input", (e) => { ed.tocado = true; if (ed.colores.length > 1) ed.colores[1] = e.target.value.toUpperCase(); pintarMuestra(); });
   $("#ed-dos").addEventListener("change", (e) => {
+    ed.tocado = true;
     ed.colores = e.target.checked ? [ed.colores[0], $("#ed-c2").value.toUpperCase()] : [ed.colores[0]];
+    pintarMuestra();
+  });
+  $$("input[name=ed-nuevo]").forEach((r) => r.addEventListener("change", pintarNotaNuevo));
+  // Si otro producto ya usa ese nombre de color, se copia su tono (mientras no lo cambies a mano)
+  $("#ed-color").addEventListener("input", () => {
+    if (ed.tocado) return;
+    const k = norm($("#ed-color").value.trim());
+    const otro = k && st.datos.productos.find((x) => norm(x.color) === k && Array.isArray(x.colores) && x.colores.length);
+    ed.colores = otro ? otro.colores.slice(0, 2) : ["#E6E6E6"];
+    $("#ed-c1").value = aHex(ed.colores[0]); $("#ed-c2").value = aHex(ed.colores[1] || "#FFFFFF");
+    $("#ed-dos").checked = ed.colores.length > 1;
     pintarMuestra();
   });
   $("#ed-sin-precio").addEventListener("change", pintarPrecio);
@@ -705,7 +789,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     try {
       const foto = await procesarFoto(archivo);
       if (ed.foto && st.subidas.has(ed.foto) && !st.datos.productos.some((p) => p.foto === ed.foto)) st.subidas.delete(ed.foto);
-      const ruta = nombreFoto($("#ed-nombre").value.trim() || autoNombre() || "producto");
+      const lineaSel = $("#ed-linea").value === "__nueva" ? $("#ed-nueva").value : $("#ed-linea").value;
+      const ruta = nombreFoto($("#ed-nombre").value.trim() || autoNombre() || "producto", lineaSel);
       st.subidas.set(ruta, foto.b64);
       st.vistas.set(ruta, foto.url);
       ed.foto = ruta;
@@ -727,10 +812,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   $("#ed-eliminar").addEventListener("click", () => {
     const p = porId(ed.id);
     if (!p) return;
-    if (st.datos.vitrina === p.id) {
-      errorEditor("Este producto está en la vitrina. Pon otro producto en la vitrina antes de eliminarlo.");
-      return;
-    }
     if (!confirm(`¿Eliminar ${p.nombre} del catálogo?`)) return;
     st.datos.productos = st.datos.productos.filter((x) => x.id !== p.id);
     editor.close();
@@ -762,9 +843,41 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       "\n\n" + lineas.map((l) => "- " + l).join("\n") + "\n\nHecho desde admin.html";
   }
 
-  async function publicar() {
+  /* Revisión antes de publicar: errores bloquean, avisos piden confirmación */
+  function revisar() {
+    const usadas = new Set(st.datos.productos.map((p) => p.foto).filter(Boolean));
+    const usadasAntes = new Set(st.orig.productos.map((p) => p.foto).filter(Boolean));
+    const archivos = new Set(st.archivos);
+    st.subidas.forEach((_, ruta) => { if (usadas.has(ruta)) archivos.add(ruta); });
+    usadasAntes.forEach((ruta) => { if (!usadas.has(ruta)) archivos.delete(ruta); });   // se borran al publicar
+    return window.ZaziValidar ? window.ZaziValidar.validar(st.datos, [...archivos]) : { errores: [], avisos: [] };
+  }
+  const revision = $("#revision");
+  function mostrarRevision(r) {
+    const n = r.errores.length;
+    $("#rev-titulo").textContent = n ? "Hay que corregir antes de publicar" : "Revisa antes de publicar";
+    $("#rev-texto").textContent = n
+      ? (n === 1 ? "1 error" : n + " errores") + (r.avisos.length ? " y " + r.avisos.length + (r.avisos.length === 1 ? " aviso" : " avisos") : "") + ". Toca uno para abrir el producto."
+      : (r.avisos.length === 1 ? "1 aviso" : r.avisos.length + " avisos") + ". Puedes publicar igual.";
+    $("#rev-lista").innerHTML = [...r.errores.map((x) => [x, "e"]), ...r.avisos.map((x) => [x, "a"])].map(([x, t]) =>
+      `<li class="${t}"><span><b>${esc(x.nombre || "Catálogo")}</b>${esc(x.msg)}</span>${x.id ? `<button class="lnk" type="button" data-abrir="${x.id}">Abrir</button>` : ""}</li>`).join("");
+    $("#rev-publicar").hidden = n > 0;
+    revision.showModal();
+  }
+  revision.addEventListener("click", (e) => {
+    if (e.target === revision || e.target.closest("[data-cerrar]")) { revision.close(); return; }
+    const b = e.target.closest("[data-abrir]");
+    if (b) { revision.close(); const p = porId(Number(b.dataset.abrir)); if (p) abrirEditor(p); }
+  });
+  $("#rev-publicar").addEventListener("click", () => { revision.close(); publicar(true); });
+
+  async function publicar(confirmado) {
     const { lineas } = diferencias();
     if (!lineas.length || st.publicando) return;
+    if (confirmado !== true) {
+      const r = revisar();
+      if (r.errores.length || r.avisos.length) { mostrarRevision(r); return; }
+    }
     st.publicando = true;
     const boton = $("#publicar");
     boton.disabled = true; $("#descartar").disabled = true;
@@ -772,9 +885,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     try {
       const ref = await api("/git/ref/heads/" + RAMA);
       const head = ref.object.sha;
-      const actual = await api("/contents/productos.json?ref=" + head);
-      if (actual.sha !== st.jsonSha) { const e = new Error("conflicto"); e.conflicto = true; throw e; }
-      const commit = await api("/git/commits/" + head);
+      if (head !== st.head) { const e = new Error("conflicto"); e.conflicto = true; throw e; }
 
       const usadas = new Set(st.datos.productos.map((p) => p.foto).filter(Boolean));
       const usadasAntes = new Set(st.orig.productos.map((p) => p.foto).filter(Boolean));
@@ -789,16 +900,16 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         if (!usadas.has(ruta) && st.fotos.has(ruta)) arbol.push({ path: ruta, mode: "100644", type: "blob", sha: null });
       });
 
-      const nuevoArbol = await api("/git/trees", { method: "POST", body: JSON.stringify({ base_tree: commit.tree.sha, tree: arbol }) });
+      const nuevoArbol = await api("/git/trees", { method: "POST", body: JSON.stringify({ base_tree: st.arbol, tree: arbol }) });
       const nuevo = await api("/git/commits", { method: "POST", body: JSON.stringify({ message: mensaje(lineas), tree: nuevoArbol.sha, parents: [head] }) });
       await api("/git/refs/heads/" + RAMA, { method: "PATCH", body: JSON.stringify({ sha: nuevo.sha }) });
-      await cargar(nuevo.sha);
+      await cargar();
       pintar();
       avisar("Publicado. La tienda se actualiza en 1 o 2 minutos.");
     } catch (e) {
       if (e.conflicto || e.status === 409 || e.status === 422) avisar("El catálogo cambió desde otro lugar mientras editabas. Toca Descartar para cargar la versión nueva y vuelve a hacer tus cambios.", true);
       else if (e.status === 401) { avisar("Tu token venció o fue revocado. Entra con uno nuevo; tus cambios siguen aquí.", true); token = ""; mostrarAcceso(); }
-      else if (e.status === 403 || e.status === 404) avisar("Este token no puede escribir en Zazi-pe/Zazi. Crea uno con Contents: Read and write.", true);
+      else if (e.status === 403 || e.status === 404) avisar("Este token no puede escribir en " + REPO + ". Revisa que tenga ese repositorio y Contents: Read and write.", true);
       else avisar("No se pudo publicar" + (e.status ? " (GitHub " + e.status + ")" : ". Revisa tu conexión") + ". Tus cambios siguen aquí; vuelve a intentarlo.", true);
     } finally {
       st.publicando = false;
@@ -806,13 +917,13 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       boton.textContent = "Publicar";
     }
   }
-  $("#publicar").addEventListener("click", publicar);
+  $("#publicar").addEventListener("click", () => publicar());
 
   $("#descartar").addEventListener("click", async () => {
     const n = diferencias().lineas.length;
     if (n && !confirm(n === 1 ? "¿Descartar el cambio sin publicar?" : `¿Descartar los ${n} cambios sin publicar?`)) return;
     mostrar("cargando");
-    try { await cargar(RAMA); mostrar("panel"); pintar(); }
+    try { await cargar(); mostrar("panel"); pintar(); }
     catch (e) { manejarErrorCarga(e); }
   });
 
@@ -828,7 +939,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   }
   function manejarErrorCarga(e) {
     if (e.status === 401) { token = ""; try { localStorage.removeItem(CLAVE_TOKEN); } catch (_) {} mostrarAcceso("El token no es válido o ya venció. Crea uno nuevo."); }
-    else if (e.status === 403 || e.status === 404) mostrarAcceso("Este token no tiene acceso a Zazi-pe/Zazi. Revisa el paso 3 y el paso 4.");
+    else if (e.status === 403 || e.status === 404) mostrarAcceso("Este token no tiene acceso a " + REPO + ". Edita el token en GitHub y agrega ese repositorio (pasos 3 y 4).");
     else mostrarAcceso("No se pudo cargar el catálogo. Revisa tu conexión y vuelve a intentarlo.");
   }
 
@@ -840,7 +951,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     token = valor;
     $("#entrar").disabled = true;
     try {
-      if (!pendiente) await cargar(RAMA);
+      if (!pendiente) await cargar();
       else await api("");
       try { localStorage.setItem(CLAVE_TOKEN, token); } catch (_) { /* sin almacenamiento */ }
       $("#token").value = "";
@@ -858,10 +969,16 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   });
 
   /* ---------- Arranque ---------- */
+  $("#cab-t").textContent = CAT.titulo;
+  $("#ed-linea-t").textContent = CAT.grupo.charAt(0).toUpperCase() + CAT.grupo.slice(1);
+  $("#ed-nueva-t").textContent = "Nombre de la nueva " + CAT.grupo;
+  document.title = "ZAZI " + CAT.titulo + " — Admin";
+  $("#otro-admin").textContent = CAT.otroTitulo;
+  $("#otro-admin").href = "../" + CATALOGOS[CAT.otro].repo.split("/")[1] + "/admin.html";
   (async () => {
     if (!token) { mostrarAcceso(); return; }
     mostrar("cargando");
-    try { await cargar(RAMA); mostrar("panel"); pintar(); }
+    try { await cargar(); mostrar("panel"); pintar(); }
     catch (e) { manejarErrorCarga(e); }
   })();
 })();

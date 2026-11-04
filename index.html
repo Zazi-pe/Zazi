@@ -319,6 +319,11 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   .c-item{grid-template-columns:88px 1fr}
   .c-foto{width:88px;height:110px}
 }
+
+/* ---------- Opciones que usa solo uno de los catálogos (ver SITIOS) ---------- */
+.hero-in.hero-solo{grid-template-columns:1fr}
+.m-color.texto{width:auto;min-width:34px;padding:0 12px;place-items:center;font-size:.8125rem;font-weight:500}
+.m-precio{margin-top:-10px;font-size:1.125rem;font-weight:600;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -361,7 +366,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
       <figure class="hero-foto" id="vitrina"></figure>
 
-      <ul class="hero-datos">
+      <ul class="hero-datos" id="hero-datos" hidden>
         <li><b>100%</b><span>Control de calidad par por par</span></li>
         <li><b>24H</b><span>Atención por WhatsApp</span></li>
         <li><b>35-46</b><span>Tallas 35 a 39 mujer, 40 a 46 hombre</span></li>
@@ -399,6 +404,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <div class="vacio" id="vacio" hidden>
       <p>No encontramos modelos con esa búsqueda.</p>
       <button class="btn btn-line" id="limpiar" type="button">Ver todo el catálogo</button>
+    </div>
+    <div class="vacio" id="catalogo-msg" hidden>
+      <p></p>
+      <a class="btn btn-line" data-wa href="https://wa.me/51959161270" target="_blank" rel="noopener">Escribir por WhatsApp</a>
     </div>
     <noscript><p class="vacio">Para ver el catálogo activa JavaScript, o escríbenos por <a href="https://wa.me/51959161270">WhatsApp</a>.</p></noscript>
   </section>
@@ -521,9 +530,9 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
 <script>
 /* ============================================================
-   ZAZI — DATOS DE LA TIENDA Y CATÁLOGO
-   Aquí cambias los datos de la tienda.
-   Los productos, filtros y la vitrina están en productos.json.
+   ZAZI — DATOS DE LA TIENDA
+   Este mismo archivo se usa en los dos catálogos (Zazi y Zazi-Modelos).
+   Los productos y filtros de cada catálogo están en su productos.json.
    ============================================================ */
 
 const TIENDA = {
@@ -533,6 +542,17 @@ const TIENDA = {
   tiktok: "zazi.pe",
   yape: { numero: "959 161 270", titular: "Rosario Tapia Carrasco" }
 };
+
+/* Lo que cambia entre los dos catálogos. Cada sitio se reconoce por su dirección
+   (zazi-pe.github.io/Zazi/ o zazi-pe.github.io/Zazi-Modelos/). */
+const SITIOS = {
+  "zazi":         { carrito: "zazi-carrito-v1",         datosPortada: true,  precioEnFicha: false, descripciones: true },
+  "zazi-modelos": { carrito: "zazi-propios-carrito-v1", datosPortada: false, precioEnFicha: true,  descripciones: false }
+};
+
+/* Los productos agregados en los últimos días llevan la etiqueta "Nuevo"
+   (desde el admin se puede forzar "Sí" o "No" en cada producto). */
+const DIAS_NUEVO = 14;
 
 </script>
 <script>
@@ -554,18 +574,24 @@ const TIENDA = {
 
   const ICONO_ZAPATILLA = '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M6 11h20l-1.6 16H7.6L6 11z"/><path d="M11 11V8a5 5 0 0 1 10 0v3"/></svg>';
 
+  /* ---------- Qué catálogo es (por la dirección; para probar: ?sitio=zazi-modelos) ---------- */
+  const nombreSitio = (new URLSearchParams(location.search).get("sitio") || location.pathname.split("/").filter(Boolean)[0] || "zazi").toLowerCase();
+  const SITIO = SITIOS[nombreSitio] || SITIOS.zazi;
+
   /* ---------- Datos del catálogo (productos.json) ---------- */
-  let PRODUCTOS = [], FILTROS = [], ID_VITRINA = null;
+  let PRODUCTOS = [], FILTROS = [], errorCarga = false;
   try {
     const r = await fetch("productos.json?v=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error("HTTP " + r.status);
     const datos = await r.json();
     PRODUCTOS = Array.isArray(datos.productos) ? datos.productos : [];
     FILTROS = Array.isArray(datos.filtros) ? datos.filtros : [];
-    ID_VITRINA = datos.vitrina ?? null;
   } catch (e) {
+    errorCarga = true;
     console.error("No se pudo cargar productos.json", e);
   }
+  // fecha de alta de cada producto (para "Nuevo", el orden y la vitrina)
+  PRODUCTOS.forEach((p) => { p._fecha = Date.parse(p.creado) || 0; });
 
   const estado = { filtro: "all", busqueda: "", orden: "destacados", carrito: [] };
   const porId = new Map(PRODUCTOS.map((p) => [p.id, p]));
@@ -588,13 +614,19 @@ const TIENDA = {
     return "Tallas " + t.join(", ");
   }
   function precioLinea(p, cant) { return consultar(p) ? 0 : p.precio * cant; }
-  // "Nuevo": productos de la línea agregada más recientemente (el bloque de id más alto).
-  const BLOQUE_NUEVO = Math.max(...PRODUCTOS.map((p) => Math.floor(p.id / 1000)));
-  const esNuevo = (p) => Math.floor(p.id / 1000) === BLOQUE_NUEVO;
-  const disponible = (p) => p.estado === "disponible" && !consultar(p);
+  // "Nuevo": "si" o "no" lo fuerza desde el admin; si no, los agregados en los últimos DIAS_NUEVO días
+  const esNuevo = (p) => p.nuevo === "si" ? true : p.nuevo === "no" ? false :
+    DIAS_NUEVO > 0 && p._fecha > 0 && Date.now() - p._fecha < DIAS_NUEVO * 864e5;
+  // Lo más nuevo primero; si tienen la misma fecha, el id más alto
+  const porFecha = (a, b) => b._fecha - a._fecha || b.id - a.id;
+  // Estado real: si todas las tallas están agotadas, el producto se muestra agotado
+  PRODUCTOS.forEach((p) => {
+    const t = tallasDe(p), ag = (p.agotadas || []).map(String);
+    if (p.estado === "disponible" && t.length && t.every((x) => ag.includes(x))) p.estado = "agotado";
+  });
 
   /* ---------- Carrito (se guarda en el navegador) ---------- */
-  const CLAVE = "zazi-carrito-v1";
+  const CLAVE = SITIO.carrito;
   function cargarCarrito() {
     try {
       const datos = JSON.parse(localStorage.getItem(CLAVE) || "[]");
@@ -631,10 +663,10 @@ const TIENDA = {
     let lista = PRODUCTOS.filter((p) => (estado.filtro === "all" || p.filtro === estado.filtro) &&
       palabras.every((w) => norm(p.nombre + " " + p.linea).includes(w)));
     const valor = (p, vacio) => (consultar(p) ? vacio : p.precio);
-    // "Recomendados" muestra primero lo último agregado al catálogo (mayor id = más nuevo).
-    if (estado.orden === "destacados") lista = [...lista].sort((a, b) => b.id - a.id);
-    if (estado.orden === "menor") lista = [...lista].sort((a, b) => valor(a, Infinity) - valor(b, Infinity));
-    if (estado.orden === "mayor") lista = [...lista].sort((a, b) => valor(b, -Infinity) - valor(a, -Infinity));
+    // "Recomendados" muestra primero lo último agregado al catálogo
+    if (estado.orden === "destacados") lista = [...lista].sort(porFecha);
+    if (estado.orden === "menor") lista = [...lista].sort((a, b) => valor(a, Infinity) - valor(b, Infinity) || porFecha(a, b));
+    if (estado.orden === "mayor") lista = [...lista].sort((a, b) => valor(b, -Infinity) - valor(a, -Infinity) || porFecha(a, b));
     return lista;
   }
 
@@ -658,15 +690,24 @@ const TIENDA = {
     const lista = listaVisible();
     $("#rejilla").innerHTML = lista.map(tarjeta).join("");
     $("#vacio").hidden = lista.length > 0;
-    $("#conteo").textContent = !PRODUCTOS.length ? "No pudimos cargar el catálogo. Escríbenos por WhatsApp." : lista.length === 1 ? "1 modelo" : lista.length + " modelos";
+    $("#conteo").textContent = lista.length === 1 ? "1 modelo" : lista.length + " modelos";
     $$("#filtros .chip").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.filtro === estado.filtro)));
   }
 
-  /* ---------- Vitrina: muestra el modelo elegido abajo ---------- */
+  /* Catálogo sin modelos todavía, o archivo que no cargó */
+  function mensajeCatalogo(tipo) {
+    ["#filtros", ".herramientas", "#conteo", "#rejilla", "#vacio"].forEach((s) => { $(s).hidden = true; });
+    $("#catalogo-msg p").textContent = tipo === "error"
+      ? "No pudimos cargar el catálogo en este momento. Escríbenos por WhatsApp y te ayudamos con tu pedido."
+      : "Estamos preparando el catálogo. Muy pronto verás aquí nuestros modelos.";
+    $("#catalogo-msg").hidden = false;
+  }
+
+  /* ---------- Vitrina: muestra el producto más nuevo ---------- */
   function pintarVitrina() {
     const el = $("#vitrina");
-    const p = porId.get(ID_VITRINA);
-    if (!el || !p) return;
+    const p = [...PRODUCTOS].filter((x) => x.foto).sort(porFecha)[0];
+    if (!p) { el.hidden = true; $(".hero-in").classList.add("hero-solo"); return; }
     el.innerHTML = `
       ${p.foto ? `<img src="${esc(p.foto)}" width="576" height="720" alt="${esc(p.nombre)}">` : `<div class="sin-foto" aria-hidden="true">${ICONO_ZAPATILLA}<span>Foto próximamente</span></div>`}
       <button class="hero-etiqueta" type="button" data-abrir="${p.id}">
@@ -679,9 +720,10 @@ const TIENDA = {
   const modal = $("#modal");
   let productoAbierto = null;
 
+  // Cuadrito de color: un tono, o dos en diagonal. Sin tono, se muestra el nombre del color.
   const fondoColor = (v) => {
-    const c = v.colores && v.colores.length ? v.colores : ["#E6E6E6"];
-    return c.length === 1 ? c[0] : `linear-gradient(135deg, ${c[0]} 50%, ${c[1]} 50%)`;
+    const c = (v.colores || []).filter((h) => /^#[0-9a-f]{3,8}$/i.test(h));
+    return !c.length ? null : c.length === 1 ? c[0] : `linear-gradient(135deg, ${c[0]} 50%, ${c[1]} 50%)`;
   };
 
   function abrirProducto(id, opciones = {}) {
@@ -693,17 +735,25 @@ const TIENDA = {
       ? `<img src="${esc(p.foto)}" width="576" height="720" alt="${esc(p.nombre)}">`
       : `<div class="sin-foto">${ICONO_ZAPATILLA}<span>Foto próximamente</span></div>`;
 
-    const puedeAgregar = p.estado === "disponible";
+    const hayTallas = tallasDe(p).length > 0;
+    const puedeAgregar = p.estado === "disponible" && hayTallas;
+    const soloConsulta = p.estado === "disponible" && !hayTallas;     // producto aún sin tallas
     const nota = p.estado === "agotado" ? '<p class="m-nota">Agotado por ahora.</p>'
-      : p.estado === "proximamente" ? '<p class="m-nota">Este modelo llega pronto.</p>' : "";
+      : p.estado === "proximamente" ? '<p class="m-nota">Este modelo llega pronto.</p>'
+      : soloConsulta ? '<p class="m-nota">Escríbenos por WhatsApp y te confirmamos tallas y disponibilidad.</p>' : "";
 
-    const variantes = p.modelo ? PRODUCTOS.filter((v) => v.modelo === p.modelo) : [p];
+    // Colores del mismo modelo (misma línea y modelo), en el orden en que se agregaron
+    const variantes = p.modelo ? PRODUCTOS.filter((v) => v.filtro === p.filtro && v.modelo === p.modelo)
+      .sort((a, b) => a._fecha - b._fecha || a.id - b.id) : [p];
+    const botonColor = (v) => {
+      const fondo = fondoColor(v);
+      const attrs = `type="button" class="m-color${fondo ? "" : " texto"}" role="radio" aria-checked="${v.id === p.id}" data-variante="${v.id}" aria-label="${esc(v.color || v.nombre)}" title="${esc(v.color || v.nombre)}"`;
+      return fondo ? `<button ${attrs}><span style="background:${fondo}"></span></button>` : `<button ${attrs}>${esc(v.color || v.nombre)}</button>`;
+    };
     const bloqueColor = !p.color ? "" : `
       <div class="m-opcion">
         <p class="m-etq" id="m-color-t">Color: ${esc(p.color)}</p>
-        <div class="m-colores" role="radiogroup" aria-labelledby="m-color-t">
-          ${variantes.map((v) => `<button type="button" class="m-color" role="radio" aria-checked="${v.id === p.id}" data-variante="${v.id}" aria-label="${esc(v.color || v.nombre)}" title="${esc(v.color || v.nombre)}"><span style="background:${fondoColor(v)}"></span></button>`).join("")}
-        </div>
+        <div class="m-colores" role="radiogroup" aria-labelledby="m-color-t">${variantes.map(botonColor).join("")}</div>
       </div>`;
 
     const agotadas = (p.agotadas || []).map(String);
@@ -727,15 +777,21 @@ const TIENDA = {
           <span id="m-sel-txt">Talla</span>
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l5 5 5-5"/></svg>
         </button>`;
+    // producto sin tallas: en vez de comprar, se consulta por WhatsApp
+    const boton = soloConsulta
+      ? `<a class="btn btn-solid" href="${esc(wa("Hola " + TIENDA.nombre + ", quiero consultar por el modelo " + p.nombre + " (" + p.linea + ")."))}" target="_blank" rel="noopener">Consultar por WhatsApp</a>`
+      : `<button class="btn btn-solid" type="button" id="m-agregar" disabled>${textoBoton}</button>`;
+    if (!opciones.mantenerScroll) $("#m-cuerpo").style.paddingBottom = "";   // producto nuevo: sin espacio extra
     $("#m-cuerpo").innerHTML = `
       <h2 class="m-nombre" id="m-nombre">${esc(p.nombre)}</h2>
       <p class="m-marca">${esc(p.linea)}</p>
+      ${SITIO.precioEnFicha ? `<p class="m-precio">${precioTxt(p)}</p>` : ""}
       ${nota}
       ${bloqueOpciones}
       <div class="m-acciones">${selector}
-        <button class="btn btn-solid" type="button" id="m-agregar" disabled>${textoBoton}</button>
+        ${boton}
       </div>
-      <p class="m-desc">${esc(p.descripcion)}</p>`;
+      ${SITIO.descripciones && p.descripcion ? `<p class="m-desc">${esc(p.descripcion)}</p>` : ""}`;
 
     // Talla preseleccionada: la menor con stock del modelo (o la que ya estaba elegida al cambiar de color)
     if (puedeAgregar) {
@@ -788,8 +844,13 @@ const TIENDA = {
     const hueco = parseFloat(getComputedStyle(barra.parentElement).rowGap) || 0;
     const centroGrupo = (b.top + b.bottom + hueco + barra.offsetHeight) / 2;
     const mover = centroGrupo - (caja.top + caja.bottom) / 2;
+    // Si falta espacio debajo del botón para llegar al centro (sin descripción), se agrega ese espacio
+    const cuerpo = $("#m-cuerpo");
+    const falta = mover - (modal.scrollHeight - modal.clientHeight - modal.scrollTop);
+    if (falta > 0) cuerpo.style.paddingBottom = (parseFloat(getComputedStyle(cuerpo).paddingBottom) + falta) + "px";
     const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    modal.scrollBy({ top: Math.max(mover, 0), behavior: sinMovimiento ? "auto" : "smooth" });
+    // destino fijo: tocar varias veces durante la animación no lo empuja más allá
+    modal.scrollTo({ top: modal.scrollTop + Math.max(mover, 0), behavior: sinMovimiento ? "auto" : "smooth" });
     const elegida = $("#m-cuerpo .m-talla[aria-checked=\"true\"]");
     if (elegida) elegida.focus({ preventScroll: true });
   }
@@ -1017,11 +1078,14 @@ const TIENDA = {
 
   /* ---------- Arranque ---------- */
   pintarCamposEntrega();
+  $("#hero-datos").hidden = !SITIO.datosPortada;
   pintarVitrina();
   estado.carrito = cargarCarrito();
   pintarFiltros();
   pintarCatalogo();
   pintarCarrito();
+  if (errorCarga) mensajeCatalogo("error");
+  else if (!PRODUCTOS.length) mensajeCatalogo("vacio");
 
   function abrirDesdeHash() {
     const m = /^#p(\d+)$/.exec(location.hash);
