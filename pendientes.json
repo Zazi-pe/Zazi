@@ -12,7 +12,6 @@
     {"shopify":{"id":"15520771244253","color":"Negro","sku":"2004554981172"},"filtro":"anda","linea":"Anda","nombre":"Anda D308 Negro","modelo":"Anda D308","color":"Negro","precio":69.9,"tallas":[35,36],"agregado":"2026-11-19"},
     {"shopify":{"id":"15520771244253","color":"Morado Verde","sku":"2019733324305"},"filtro":"anda","linea":"Anda","nombre":"Anda D308 Morado Verde","modelo":"Anda D308","color":"Morado Verde","precio":69.9,"tallas":[35,36],"agregado":"2026-11-19"},
     {"shopify":{"id":"15520771244253","color":"Blanco Morado","sku":"2001026389900"},"filtro":"anda","linea":"Anda","nombre":"Anda D308 Blanco Morado","modelo":"Anda D308","color":"Blanco Morado","precio":69.9,"tallas":[35,36],"agregado":"2026-11-19"},
-    {"shopify":{"id":"15520771244253","color":"Blanco","sku":"2061877534355"},"filtro":"anda","linea":"Anda","nombre":"Anda D308 Blanco","modelo":"Anda D308","color":"Blanco","precio":69.9,"tallas":["35","36","39"],"agregado":"2026-11-19"},
-    {"shopify":{"id":"15520912015581","color":"Blanco Verde","sku":"2006883670635"},"filtro":"anda","linea":"Anda","nombre":"Anda D268 Blanco Verde","modelo":"Anda D268","color":"Blanco Verde","precio":69.9,"tallas":["35"],"agregado":"2026-11-19"}
+    {"shopify":{"id":"15520771244253","color":"Blanco","sku":"2061877534355"},"filtro":"anda","linea":"Anda","nombre":"Anda D308 Blanco","modelo":"Anda D308","color":"Blanco","precio":69.9,"tallas":["35","36","39"],"agregado":"2026-11-19"}
   ]
 }
