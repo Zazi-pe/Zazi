@@ -4,7 +4,6 @@
     {"shopify":{"id":"15520770883805","color":"Azul Rosa","sku":"2068747573889"},"filtro":"anda","linea":"Anda","nombre":"Anda D307 Azul Rosa","modelo":"Anda D307","color":"Azul Rosa","precio":69.9,"tallas":["35"],"agregado":"2026-11-19"},
     {"shopify":{"id":"15520770883805","color":"Blanco Verde","sku":"2015837169675"},"filtro":"anda","linea":"Anda","nombre":"Anda D307 Blanco Verde","modelo":"Anda D307","color":"Blanco Verde","precio":69.9,"tallas":["35"],"agregado":"2026-11-19"},
     {"shopify":{"id":"15520770883805","color":"Blanco Rosa","sku":"2056621396563"},"filtro":"anda","linea":"Anda","nombre":"Anda D307 Blanco Rosa","modelo":"Anda D307","color":"Blanco Rosa","precio":69.9,"tallas":["35"],"agregado":"2026-11-19"},
-    {"shopify":{"id":"15520770916573","color":"Blanco Morado","sku":"2056489566320"},"filtro":"anda","linea":"Anda","nombre":"Anda D315 Blanco Morado","modelo":"Anda D315","color":"Blanco Morado","precio":69.9,"tallas":["36"],"agregado":"2026-11-19"},
-    {"shopify":{"id":"15520770916573","color":"Rosa","sku":"2025607715384"},"filtro":"anda","linea":"Anda","nombre":"Anda D315 Rosa","modelo":"Anda D315","color":"Rosa","precio":69.9,"tallas":[35,36],"agregado":"2026-11-19"}
+    {"shopify":{"id":"15520770916573","color":"Blanco Morado","sku":"2056489566320"},"filtro":"anda","linea":"Anda","nombre":"Anda D315 Blanco Morado","modelo":"Anda D315","color":"Blanco Morado","precio":69.9,"tallas":["36"],"agregado":"2026-11-19"}
   ]
 }
