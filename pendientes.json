@@ -1,3 +1,6 @@
 {
-  "pendientes": []
+  "pendientes": [
+    {"shopify":{"id":"15546590200029","color":"Azul","sku":"2092615660685"},"filtro":"irun","linea":"I-RUN","nombre":"Motions 381 Azul","modelo":"Motions 381","estilo":"Deportivas","genero":"unisex","color":"Azul","precio":85,"tallas":[30,35],"agotadas":["33","34"],"agregado":"2026-11-27"},
+    {"shopify":{"id":"15546590200029","color":"Morado","sku":"2073329729097"},"filtro":"irun","linea":"I-RUN","nombre":"Motions 381 Morado","modelo":"Motions 381","estilo":"Deportivas","genero":"unisex","color":"Morado","precio":85,"tallas":[30,35],"agotadas":["30","33","34"],"agregado":"2026-11-27"}
+  ]
 }
