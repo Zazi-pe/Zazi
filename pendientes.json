@@ -1,3 +1,7 @@
 {
-  "pendientes": []
+  "pendientes": [
+    {"shopify":{"id":"15546758070493","color":"Azul Rojo","sku":"2028798704694"},"filtro":"irun","linea":"I-RUN","nombre":"177J3 Azul Rojo","modelo":"177J3","estilo":"Deportivas","genero":"unisex","color":"Azul Rojo","precio":89.9,"tallas":["35"],"agregado":"2026-11-27"},
+    {"shopify":{"id":"15546758136029","color":"Azul Dorado","sku":"2001155155339"},"filtro":"irun","linea":"I-RUN","nombre":"210J3 Azul Dorado","modelo":"210J3","estilo":"Deportivas","genero":"unisex","color":"Azul Dorado","precio":89.9,"tallas":[35,37],"agregado":"2026-11-27"},
+    {"shopify":{"id":"15546758201565","color":"Azul Gris","sku":"2005595739036"},"filtro":"irun","linea":"I-RUN","nombre":"208J4 Azul Gris","modelo":"208J4","estilo":"Deportivas","genero":"unisex","color":"Azul Gris","precio":89.9,"tallas":[35,37],"agregado":"2026-11-27"}
+  ]
 }
