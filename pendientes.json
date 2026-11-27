@@ -1,6 +1,5 @@
 {
   "pendientes": [
-    {"shopify":{"id":"15546070466781","color":"Negro","sku":"2063079179129"},"filtro":"kitty","linea":"KITTY","nombre":"Hello Kitty-10 Negro","modelo":"Hello Kitty-10","estilo":"Urbanas","genero":"mujer","color":"Negro","precio":35,"tallas":[37,38],"agregado":"2026-11-27"},
-    {"shopify":{"id":"15546070466781","color":"Blanco Negro","sku":"2099413132512"},"filtro":"kitty","linea":"KITTY","nombre":"Hello Kitty-10 Blanco Negro","modelo":"Hello Kitty-10","estilo":"Urbanas","genero":"mujer","color":"Blanco Negro","precio":35,"tallas":[37,38],"agregado":"2026-11-27"}
+    {"shopify":{"id":"15546070466781","color":"Negro","sku":"2063079179129"},"filtro":"kitty","linea":"KITTY","nombre":"Hello Kitty-10 Negro","modelo":"Hello Kitty-10","estilo":"Urbanas","genero":"mujer","color":"Negro","precio":35,"tallas":[37,38],"agregado":"2026-11-27"}
   ]
 }
